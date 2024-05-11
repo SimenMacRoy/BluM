@@ -49,8 +49,14 @@ const IngredientsScreen = () => {
             case "Viande":
                 navigation.navigate('MeatScreen');
                 break;
-            case "Fruits":
-                navigation.navigate('FruitScreen');
+            case "ProdEnConserves":
+                navigation.navigate('ProdEnConservesScreen');
+                break;
+            case "Boissons":
+                navigation.navigate('DrinksScreen');
+                break;
+            case "Autres":
+                navigation.navigate('OthersScreen');
                 break;
             default:
                 break;
@@ -107,7 +113,7 @@ const IngredientsScreen = () => {
                         <IngredientsList ingredients={ingredients.filter(i => i.category === 'Condiments')} onPress={handleResultPress} />
                     </ScrollView>
 
-                    <SectionHeader text="Produits en Conserves" onPress={() => handleCategoryPress("Conserves")} />
+                    <SectionHeader text="Produits en Conserves" onPress={() => handleCategoryPress("ProdEnConserves")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <IngredientsList ingredients={ingredients.filter(i => i.category === 'ProdEnConserves')} onPress={handleResultPress} />
                     </ScrollView>

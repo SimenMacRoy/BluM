@@ -12,6 +12,9 @@ import AsianDishesScreen from '../Screens/AsianDishesScreen';
 import SpiceScreen from '../Screens/SpiceScreen';
 import CondimentScreen from '../Screens/CondimentScreen';
 import AssaisonementScreen from '../Screens/AssaisonementScreen';
+import ProdEnConservesScreen from '../Screens/ProdEnConservesScreen';
+import DrinksScreen from '../Screens/DrinksScreen';
+import OthersScreen from '../Screens/OthersScreen';
 import FruitScreen from '../Screens/FruitScreen';
 import LegumeScreen from '../Screens/LegumeScreen';
 import MeatScreen from '../Screens/MeatScreen';
@@ -20,6 +23,8 @@ import CommentScreen from '../Screens/CommentScreen';
 import UserScreen from '../Screens/UserScreen';
 import EditProfileScreen from '../Screens/EditProfileScreen';
 import PublishScreen from '../Screens/PublishScreen';
+import EuropeanDishesScreen from '../Screens/EuropeanDishesScreen';
+
 
 // Define a root stack navigator
 const RootStack = createStackNavigator();
@@ -38,6 +43,7 @@ const RootNavigator = () => {
       <RootStack.Screen name="AfricanDishesScreen" component={AfricanDishesScreen} options={{ headerShown: false}}/>
       <RootStack.Screen name="AmericanDishesScreen" component={AmericanDishesScreen} options={{ headerShown: false}}/>
       <RootStack.Screen name="AsianDishesScreen" component={AsianDishesScreen} options={{ headerShown: false}}/>
+      <RootStack.Screen name="EuropeanDishesScreen" component={EuropeanDishesScreen} options={{ headerShown: false}}/>
       <RootStack.Screen name="SpiceScreen" component={SpiceScreen} options={{ headerShown: false}}/>
       <RootStack.Screen name="CondimentScreen" component={CondimentScreen} options={{ headerShown: false}}/>
       <RootStack.Screen name="AssaisonementScreen" component={AssaisonementScreen} options={{ headerShown: false}}/>
@@ -49,6 +55,9 @@ const RootNavigator = () => {
       <RootStack.Screen name="UserScreen" component={UserScreen} options={{ headerShown: false}}/>
       <RootStack.Screen name="EditProfileScreen" component={EditProfileScreen} options={{ headerShown:false}}/>
       <RootStack.Screen name="PublishScreen" component={PublishScreen} options={{ headerShown: false}}/>
+      <RootStack.Screen name="ProdEnConservesScreen" component={ProdEnConservesScreen} options={{ headerShown:false}}/>
+      <RootStack.Screen name="DrinksScreen" component={DrinksScreen} options={{ headerShown:false}}/>
+      <RootStack.Screen name="OthersScreen" component={OthersScreen} options={{ headerShown:false }}/>
     </RootStack.Navigator>
   );
 };

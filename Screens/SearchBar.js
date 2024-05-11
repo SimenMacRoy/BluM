@@ -34,16 +34,22 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
     };
 
     const handleSearchIconPress = () => {
-        if (searchType === 'foods' && suggestedDish) {
-            navigation.navigate('RecipeScreenDetail', { dishId: suggestedDish.id });
-        } else if (searchType === 'ingredients' && suggestedIngredient) {
-            navigation.navigate('IngredientsDetailScreen', { ingredientId: suggestedIngredient.id });
+
+        if (!text) {
+            // Focus the text input if no text is entered
+            this.textInputRef.focus();
         } else {
-            if (searchType === 'Africans' || searchType === 'Americans' || searchType === 'Asians' || searchType === 'Europeans'){
-                navigation.navigate('RecipeScreenDetail', { dishId: suggestions.id });
-            }
-            else {
-                navigation.navigate('IngredientsDetailScreen', { ingredientId: suggestions.id });
+            if (searchType === 'foods' && suggestedDish) {
+                navigation.navigate('RecipeScreenDetail', { dishId: suggestedDish.id });
+            } else if (searchType === 'ingredients' && suggestedIngredient) {
+                navigation.navigate('IngredientsDetailScreen', { ingredientId: suggestedIngredient.id });
+            } else {
+                if (searchType === 'Africans' || searchType === 'Americans' || searchType === 'Asians' || searchType === 'Europeans'){
+                    navigation.navigate('RecipeScreenDetail', { dishId: suggestions.id });
+                }
+                else {
+                    navigation.navigate('IngredientsDetailScreen', { ingredientId: suggestions.id });
+                }
             }
         }
     };
@@ -107,7 +113,8 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
             <View style={styles.searchContainer}>
                 <FontAwesome name="search" onPress={handleSearchIconPress} size={20} color="black" />
                 <TextInput
-                    style={[styles.searchText, focused && styles.focused]}
+                    ref={(input) => { this.textInputRef = input; }}
+                    style={[styles.searchText, focused ? styles.focused : null]}
                     value={text}
                     onChangeText={handleChangeText}
                     onFocus={handleFocus}
@@ -141,6 +148,10 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         fontSize: 18,
         padding: 10,
+    },
+    focused: {
+        backgroundColor: '#D9D9D9', // Lighter background when focused
+        borderColor: '#000', // Darker border when focused
     },
     clearIcon: {},
 });

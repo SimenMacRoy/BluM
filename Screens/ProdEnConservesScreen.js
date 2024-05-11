@@ -1,28 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import Header from './Header'; // Adjust the path as necessary
-import SearchBar from './SearchBar'; // Adjust the path as necessary
+import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import Header from './Header';
+import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
-const AsianDishesScreen = () => {
-    const navigation = useNavigation(); // Initialize navigation
+const ProdEnConservesScreen = ({ navigation }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
-    const [asianDishes, setAsianDishes] = useState([]);
+    const [prodEnConserves, setProdEnConserves] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Fetch Asian dishes from backend
-        const fetchAsianDishes = async () => {
+        const fetchProdEnConserves = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/dish/Asians');
+                const response = await fetch('http://192.168.69.205:3006/api/ingredient/ProdEnConserves');
                 if (!response.ok) {
-                    throw new Error('Failed to fetch Asian dishes');
+                    throw new Error('Failed to fetch products in conserves');
                 }
                 const data = await response.json();
-                setAsianDishes(data);
+                setProdEnConserves(data);
                 setLoading(false);
             } catch (err) {
                 console.error('Error:', err);
@@ -31,15 +28,11 @@ const AsianDishesScreen = () => {
             }
         };
 
-        fetchAsianDishes();
+        fetchProdEnConserves();
     }, []);
 
-    const navigateToDetail = (dishId) => {
-        navigation.navigate('RecipeScreenDetail', { dishId });
-    };
-
-    const handleResultPress = (food) => {
-        navigateToDetail(food.id);
+    const handleResultPress = (item) => {
+        navigation.navigate('IngredientsDetailScreen', { ingredientId: item.id });
     };
 
     const handleSearch = (results) => {
@@ -48,7 +41,7 @@ const AsianDishesScreen = () => {
     };
 
     const renderItem = ({ item }) => (
-        <TouchableOpacity style={styles.row} onPress={() => navigateToDetail(item.id)}>
+        <TouchableOpacity style={styles.row} onPress={() => handleResultPress(item)}>
             <Image source={{ uri: item.image }} style={styles.image} />
             <Text style={styles.title}>{item.title}</Text>
         </TouchableOpacity>
@@ -69,23 +62,22 @@ const AsianDishesScreen = () => {
     return (
         <View style={{ flex: 1 }}>
             <Header />
-            <SearchBar
-                onSearch={handleSearch}
+            <SearchBar 
+                onSearch={handleSearch} 
                 onResultPress={handleResultPress}
-                searchType={'Asians'}
-                placeholder='Rechercher un plat asiatique...'
+                searchType={'ProdEnConserves'}
+                placeholder={'Recherchez des produits en conserves...'}
             />
             {isSearching ? (
                 <SearchResults results={searchResults} onResultPress={handleResultPress} />
             ) : (
-                <View>
-                    <Text style={styles.bigTitle}>Plats Asiatiques</Text>
-                    <FlatList
-                        data={asianDishes}
-                        keyExtractor={item => item.id.toString()}
-                        renderItem={renderItem}
-                    />
-                </View>
+                <FlatList
+                    data={prodEnConserves}
+                    keyExtractor={item => item.id.toString()}
+                    renderItem={renderItem}
+                    contentContainerStyle={{ paddingBottom: 100 }}  // Ensure accessibility of the last items
+                    ListHeaderComponent={() => <Text style={styles.bigTitle}>Produits en Conserves</Text>}
+                />
             )}
         </View>
     );
@@ -98,6 +90,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#ddd',
+        marginHorizontal: 10,
     },
     image: {
         width: 50,
@@ -117,4 +110,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AsianDishesScreen;
+export default ProdEnConservesScreen;

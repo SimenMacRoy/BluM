@@ -181,7 +181,7 @@ app.get('/api/ingredients/:id', (req, res) => {
 
 // API to search each of the ingredients corresponding to their category.
 app.get('/api/ingredient/:category', (req, res) => {
-    const validCategories = ['Epices', 'Legumes', 'Viande', 'Condiments']; // List of valid categories
+    const validCategories = ['Epices', 'Legumes', 'Viande', 'Condiments', 'ProdEnConserves', 'Boissons', 'Autres']; // List of valid categories
     const category = req.params.category;
 
     // Check if the requested category is valid
@@ -199,53 +199,26 @@ app.get('/api/ingredient/:category', (req, res) => {
     });
 });
 
-// Api to load all the African dishes from the DISHES table.
-app.get('/api/american-dishes', (req, res) => {
-    const query = `SELECT * FROM DISHES WHERE category = 'Americans'`;
-    db.query(query, (err, results) => {
+// Api to load all the dishes from the DISHES table.
+app.get('/api/dish/:category', (req, res) => {
+    const { category } = req.params;
+    
+    // Optionally, you could validate the category against a list of known categories
+    const validCategories = ['Americans', 'Africans', 'Asians', 'Europeans'];
+    if (!validCategories.includes(category)) {
+        return res.status(400).send('Invalid category specified');
+    }
+
+    const query = `SELECT * FROM DISHES WHERE category = ?`;
+    db.query(query, [category], (err, results) => {
         if (err) {
-            console.error('Error fetching American dishes:', err);
-            return res.status(500).send('Error fetching American dishes from the database');
+            console.error(`Error fetching ${category} dishes:`, err);
+            return res.status(500).send(`Error fetching ${category} dishes from the database`);
         }
         res.json(results);
     });
 });
 
-// Api to load all the African dishes from the DISHES table.
-app.get('/api/african-dishes', (req, res) => {
-    const query = `SELECT * FROM DISHES WHERE category = 'Africans'`;
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error fetching African dishes:', err);
-            return res.status(500).send('Error fetching African dishes from the database');
-        }
-        res.json(results);
-    });
-});
-
-// Api to load all the Asian dishes from the DISHES table.
-app.get('/api/asian-dishes', (req, res) => {
-    const query = `SELECT * FROM DISHES WHERE category = 'Asians'`;
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error fetching Asian dishes:', err);
-            return res.status(500).send('Error fetching Asian dishes from the database');
-        }
-        res.json(results);
-    });
-});
-
-// Api to load all the European dishes from the DISHES table.
-app.get('/api/european-dishes', (req, res) => {
-    const query = `SELECT * FROM DISHES WHERE category = 'Europeans'`;
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error fetching European dishes:', err);
-            return res.status(500).send('Error fetching European dishes from the database');
-        }
-        res.json(results);
-    });
-});
 
 // Api to search for a particular food in the DISHES table. 
 // It is used in the RecipeScreen's SearchBar.
@@ -275,6 +248,7 @@ app.get('/api/search/ingredients', (req, res) => {
     });
 });
 
+// API to search for either a dish or an ingredient based on its category.
 app.get('/api/search/:category', (req, res) => {
     const { category } = req.params;
     const searchTerm = req.query.query;

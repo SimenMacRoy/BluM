@@ -17,7 +17,7 @@ const AfricanDishesScreen = () => {
         // Fetch African dishes from backend
         const fetchAfricanDishes = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/african-dishes');
+                const response = await fetch('http://192.168.69.205:3006/api/dish/Africans');
                 if (!response.ok) {
                     throw new Error('Failed to fetch African dishes');
                 }

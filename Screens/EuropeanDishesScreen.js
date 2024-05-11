@@ -17,7 +17,7 @@ const EuropeanDishesScreen = () => {
         // Fetch Asian dishes from backend
         const fetchEuropeanDishes = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/european-dishes');
+                const response = await fetch('http://192.168.69.205:3006/api/dish/Europeans');
                 if (!response.ok) {
                     throw new Error('Failed to fetch European dishes');
                 }

@@ -17,7 +17,7 @@ const AmericanDishesScreen = () => {
         // Fetch American dishes from backend
         const fetchAmericanDishes = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/american-dishes');
+                const response = await fetch('http://192.168.69.205:3006/api/dish/Americans');
                 if (!response.ok) {
                     throw new Error('Failed to fetch American dishes');
                 }
