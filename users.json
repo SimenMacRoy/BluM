@@ -1,0 +1,84 @@
+{
+    "users": [
+      {
+        "id": 111,
+        "name": "Keila",
+        "surname": "Roy",
+        "email": "keilaroy26@gmail.com",
+        "password":"iloveMATHS",
+        "phoneNumber": "819-701-8694",
+        "profilePicture": "https://media.allure.com/photos/618e8f91a1a8416c21145742/master/w_1600%2Cc_limit/Global%2520Black%2520Beauty%2520Traditions%2520nenna.jpeg",
+        "followersCount": 200,
+        "followingCount": 10,
+        "followers": [112],
+        "following": [112],
+        "birthday": "26/06/2035",
+        "posts": [
+          {
+            "postId": 101,
+            "content": "This is my first post.",
+            "timestamp": "2021-01-01T12:00:00",
+            "postType": "image",
+            "postContext":"C:\\Users\\Mac Roy\\Documents\\bluMApp\\assets\\ndole.png",
+            "comments": 12,
+            "likes": 20,
+            "loves": 15,
+            "stars": 4 
+          },
+          {
+            "postId": 102,
+            "content": "Enjoying a day at the beach!",
+            "timestamp": "2021-01-02T15:30:00",
+            "postType": "image",
+            "postContext":"C:\\Users\\Mac Roy\\Documents\\bluMApp\\assets\\placali.png",
+            "comments": 12,
+            "likes": 20,
+            "loves": 15,
+            "stars": 4
+          }
+        ]
+      },
+      {
+        "id": 112,
+        "name": "Mac Roy",
+        "surname": "Simen",
+        "email": "macroysimen@gmail.com",
+        "password":"WhatIs5!",
+        "phoneNumber": "819-448-6482",
+        "profilePicture": "",
+        "followersCount": 200,
+        "followingCount": 10,
+        "followers": [111],
+        "following": [111],
+        "birthday": "27/07/2003",
+        "posts": [
+          {
+            "postId": 103,
+            "content": "This is my first post.",
+            "timestamp": "2021-01-01T12:00:00",
+            "postType": "image",
+            "postContext":"C:\\Users\\Mac Roy\\Documents\\bluMApp\\assets\\ndole.png",
+            "comments": 12,
+            "likes": 20,
+            "loves": 15,
+            "stars": 4
+            
+          },
+          {
+            "postId": 104,
+            "content": "Enjoying a day with Samanta.",
+            "timestamp": "2021-01-02T15:30:00",
+            "postType": "video",
+            "postContext":"C:\\Users\\Mac Roy\\Documents\\bluMApp\\assets\\VID-20211229-WA0224.mp4",
+            "comments": 12,
+            "likes": 20,
+            "loves": 15,
+            "stars": 4
+          }
+        ]   
+      }
+
+      
+    ]
+  }
+  

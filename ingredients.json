@@ -1,0 +1,87 @@
+[
+    {
+        "id": 5,
+        "type": "ing",
+        "category": "Epice",
+        "title": "Poivre Blanc",
+        "image": "https://media.istockphoto.com/id/1371163048/fr/photo/poivre-blanc-moulu-et-%C3%A9pice-de-poivre-entier-isol%C3%A9s-sur-fond-blanc.jpg?s=612x612&w=0&k=20&c=aEGxNQS1pVvahr2O6GYX7FV6BsgkeeyD_6ilE1k_5-M=",
+        "description": "This is an example an African spice. Precisely from a tribe known as Douala",
+        "packaging":"sac de  3kg",
+        "countryFlag": "🇨🇲",
+        "quantity": 1,
+        "price": 18.99
+    },
+    {
+        "id": 6,
+        "type": "ing",
+        "category": "Epice",
+        "title": "Ndjasang",
+        "image": "https://i.etsystatic.com/30867854/r/il/009892/3275464874/il_fullxfull.3275464874_5l7k.jpg",
+        "description": "Another example African spice.",
+        "packaging":"sac de  3kg",
+        "countryFlag": "🇨🇮",
+        "quantity": 1,
+        "price": 12.99
+    },
+    {
+        "id": 7,
+        "type": "ing",
+        "category": "Epice",
+        "title": "BBQ",
+        "image": "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_600,h_600/https://erablieregrenier.com/wp-content/uploads/MG_1014-scaled-600x600.jpg",
+        "description": "This is an example American spice.",
+        "packaging":"sac de  3kg",
+        "countryFlag": "🇺🇸",
+        "quantity": 1,
+        "price": 8.99
+    },
+    {
+        "id": 8,
+        "type": "ing",
+        "category": "Epice",
+        "title": "Epice Chinois",
+        "image": "https://www.epiceslekanto.com/wp-content/uploads/2017/03/La-badiane-chinoise-dans-les-cinq-%C3%A9pices-chinois.jpg",
+        "description": "Example of china spice.",
+        "packaging":"sac de  3kg",
+        "countryFlag": "🇨🇳",
+        "quantity": 1,
+        "price": 15.99
+    },
+    {
+        "id": 9,
+        "type": "ing",
+        "category": "Condiment",
+        "title": "Mayonnaise",
+        "image": "https://assets.unileversolutions.com/v1/86093563.png",
+        "description": "Example of Mayonnaise.",
+        "packaging":"Boite de 3kg",
+        "countryFlag": "🇨🇳",
+        "quantity": 1,
+        "price": 7.99
+    },
+    {
+        "id": 10,
+        "type": "ing",
+        "category": "Fruit",
+        "title": "Papaye",
+        "image": "https://www.aprifel.com/wp-content/uploads/2019/02/papaye.jpg",
+        "description": "Douce papaye.",
+        "packaging":"sac de  10kg",
+        "countryFlag": "🇨🇮",
+        "quantity": 1,
+        "price": 15.99
+    },
+    {
+        "id": 11,
+        "type": "ing",
+        "category": "Assaisonement",
+        "title": "Sel",
+        "image": "https://images.radio-canada.ca/v1/ici-premiere/16x9/mdr-saliere-sel.jpg",
+        "description": "Sel sale.",
+        "packaging":"sac de  5kg",
+        "countryFlag": "🇨🇲",
+        "quantity": 1,
+        "price": 15.99
+    }
+
+]
