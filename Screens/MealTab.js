@@ -76,7 +76,7 @@ const MealTab = ({ route }) => {
                     placeholder='Any specific requirements' />
 
                 <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
-                    <Text style={styles.buttonText}>Add to basket</Text>
+                    <Text style={styles.buttonText}>Ajouter au panier</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>

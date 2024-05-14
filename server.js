@@ -561,6 +561,50 @@ app.post('/api/users/:userID/update', (req, res) => {
     });
 });
 
+app.get('/api/receipts', (req, res) => {
+    const query = `
+        SELECT 
+            c.commandId, 
+            c.commandDateTime, 
+            c.paymentType, 
+            c.amount, 
+            c.commandDetails,
+            u.name AS userName, 
+            u.surname AS userSurname, 
+            u.phone_number AS userPhone, 
+            u.email AS userEmail,
+            m.memberID, 
+            m.name AS memberName, 
+            m.surname AS memberSurname
+        FROM COMMANDS c
+        JOIN USERS u ON c.userID = u.userID
+        JOIN MEMBERS m ON c.memberID = m.memberID
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Failed to fetch receipts: ' + err);
+            res.status(500).send('Failed to fetch receipts');
+            return;
+        }
+        res.json(results);
+    });
+});
+app.post('/api/surveys', (req, res) => {
+    const { userID, question1, question2, question3, question4, question5 } = req.body;
+    const sql = `INSERT INTO SURVEYS (userID, surveyDate, question1, question2, question3, question4, question5) 
+                 VALUES (?, NOW(), ?, ?, ?, ?, ?)`;
+
+    db.query(sql, [userID, question1, question2, question3, question4, question5], (err, result) => {
+        if (err) {
+            console.error('Failed to insert survey:', err);
+            res.status(500).json({ message: 'Failed to save survey' });
+            return;
+        }
+        res.status(201).json({ message: 'Survey saved successfully' });
+    });
+});
+
 
 
 // Directly specify server port

@@ -90,12 +90,6 @@ const IngredientsDetailScreen = ({ route }) => {
     return (
         <View style={styles.container}>
             <Header />
-            <SearchBar
-                searchType={'ingredients'}
-                placeholder='Search ingredients...'
-                onResultPress={handleResultPress}
-                onSearch={handleSearch}
-            />
 
             <View style={styles.foodContainer}>
                 <Image source={{ uri: ingredient.image }} style={styles.foodImage} />

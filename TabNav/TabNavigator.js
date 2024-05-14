@@ -30,7 +30,7 @@ const TabNavigator = () => {
             iconName = 'nutrition';
           } else if (route.name === 'Commander') {
             iconName = 'cart';
-          } else if (route.name === 'Historique') {
+          } else if (route.name === 'Mon Compte') {
             iconName = 'menu-outline';
           }
 
@@ -49,7 +49,7 @@ const TabNavigator = () => {
       <Tab.Screen name="Recettes" component={RecipeNav} options={{headerShown: false}}/>
       <Tab.Screen name="Ingredients" component={IngredientNav} options={{headerShown: false}}/>
       <Tab.Screen name="Commander" component={CommandNav} options={{headerShown: false}}/>
-      <Tab.Screen name="Historique" component={MoreNav} options={{headerShown: false}}/>
+      <Tab.Screen name="Mon Compte" component={MoreNav} options={{headerShown: false}}/>
       
     </Tab.Navigator>
   );

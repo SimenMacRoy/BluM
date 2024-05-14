@@ -17,7 +17,7 @@ const Basket = () => {
 
     // Function to navigate to the RecipeScreen.
     const shop = () => {
-        navigation.navigate('RecipeScreen');
+        navigation.navigate('HomeScreen');
     };
 
     // Function to navigate to the CheckoutScreen.

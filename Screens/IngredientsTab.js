@@ -116,7 +116,7 @@ const IngredientsTab = ({ route }) => {
                 })}
             </View>
             <TouchableOpacity style={styles.checkoutButton} onPress={handleAddToBasket}>
-                <Text style={styles.checkoutText}>Add to basket</Text>
+                <Text style={styles.checkoutText}>Ajouter au panier</Text>
             </TouchableOpacity>
         </ScrollView>
     );

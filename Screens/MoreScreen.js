@@ -13,31 +13,31 @@ const MoreScreen = () => {
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('EditProfileScreen')}>
                 <Icon name="person-outline" size={20} />
-                <Text style={{ marginLeft: 10 }}>Gérer mon profil</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20 }}>Gérer mon profil</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('ReceiptScreen')}>
                 <Icon name="receipt" size={20} />
-                <Text style={{ marginLeft: 10 }}>Mes Factures</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20 }}>Mes Factures</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('PromotionsScreen')}>
                 <Icon name="local-offer" size={20} />
-                <Text style={{ marginLeft: 10 }}>Promotions</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20 }}>Promotions</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
-                              onPress={() => navigation.navigate('FAQs')}>
+                              onPress={() => navigation.navigate('FAQsScreen')}>
                 <Icon name="question-answer" size={20} />
-                <Text style={{ marginLeft: 10 }}>FAQs</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20 }}>FAQs</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('SurveyScreen')}>
                 <Icon name="poll" size={20} />
-                <Text style={{ marginLeft: 10 }}>Avis/Sondages</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20 }}>Avis/Sondages</Text>
             </TouchableOpacity>
         </ScrollView>
     )

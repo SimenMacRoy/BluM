@@ -24,6 +24,10 @@ import UserScreen from '../Screens/UserScreen';
 import EditProfileScreen from '../Screens/EditProfileScreen';
 import PublishScreen from '../Screens/PublishScreen';
 import EuropeanDishesScreen from '../Screens/EuropeanDishesScreen';
+import ReceiptScreen from '../Screens/ReceiptScreen';
+import FAQsScreen from '../Screens/FAQsScreen';
+import SurveyScreen from '../Screens/SurveyScreen';
+import RecipeScreen from '../Screens/RecipeScreen';
 
 
 
@@ -59,6 +63,10 @@ const RootNavigator = () => {
       <RootStack.Screen name="ProdEnConservesScreen" component={ProdEnConservesScreen} options={{ headerShown:false}}/>
       <RootStack.Screen name="DrinksScreen" component={DrinksScreen} options={{ headerShown:false}}/>
       <RootStack.Screen name="OthersScreen" component={OthersScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="ReceiptScreen" component={ReceiptScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="FAQsScreen" component={FAQsScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="SurveyScreen" component={SurveyScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="RecipeScreen" component={RecipeScreen} options={{ headerShown:false }}/>
     </RootStack.Navigator>
   );
 };
