@@ -56,8 +56,6 @@ import LoginScreen from './LoginScreen';
   );
 };
 
-export default WelcomeScreen;
-
 const styles = StyleSheet.create({
   imageLogo: {
     width: 205, 
@@ -85,3 +83,5 @@ const styles = StyleSheet.create({
     
   }
 });
+
+export default WelcomeScreen;

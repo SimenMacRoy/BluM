@@ -26,14 +26,15 @@ import PublishScreen from '../Screens/PublishScreen';
 import EuropeanDishesScreen from '../Screens/EuropeanDishesScreen';
 
 
+
 // Define a root stack navigator
 const RootStack = createStackNavigator();
 
 // Define your root navigation stack
 const RootNavigator = () => {
   return (
-    <RootStack.Navigator>
-      <RootStack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+    <RootStack.Navigator initialRouteName="WelcomeScreen">
+      <RootStack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown: false }} />
       <RootStack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
       <RootStack.Screen name="RegistrationScreen" component={RegistrationScreen} options={{ headerShown: false }} />
       <RootStack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
