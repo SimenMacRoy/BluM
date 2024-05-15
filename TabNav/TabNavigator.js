@@ -12,6 +12,7 @@ import CommandNav from './CommandNav';
 import IngredientNav from './IngredientNav';
 import MoreNav from './MoreNav';
 import HomeNav from './HomeNav';
+import Basket from '../Screens/Basket';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
@@ -48,7 +49,7 @@ const TabNavigator = () => {
       <Tab.Screen name="Accueil" component={HomeNav} options={{headerShown: false}}/>
       <Tab.Screen name="Recettes" component={RecipeNav} options={{headerShown: false}}/>
       <Tab.Screen name="Ingredients" component={IngredientNav} options={{headerShown: false}}/>
-      <Tab.Screen name="Commander" component={CommandNav} options={{headerShown: false}}/>
+      <Tab.Screen name="Commander" component={Basket} options={{headerShown: false}}/>
       <Tab.Screen name="Mon Compte" component={MoreNav} options={{headerShown: false}}/>
       
     </Tab.Navigator>

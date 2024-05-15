@@ -37,7 +37,7 @@ const CheckoutScreen = () => {
     return (
         <ScrollView style={styles.container}>
             <Header />
-            <SearchBar />
+            <Text style={styles.infoHeader}>Entrez vos informations</Text>
             <View style={styles.userInfoSection}>
                 <TextInput style={styles.input} onChangeText={setName} value={name} placeholder="Name" />
                 <TextInput style={styles.input} onChangeText={setSurname} value={surname} placeholder="Surname" />
@@ -87,6 +87,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    infoHeader: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        justifyContent: 'center',
+        padding: 5, 
+        margin: 10,
+    },
     userInfoSection: {
         marginBottom: 20,
         padding: 20,
@@ -114,6 +121,7 @@ const styles = StyleSheet.create({
     payButton: {
         backgroundColor: 'blue',
         padding: 15,
+        margin: 20,
         borderRadius: 5,
         alignItems: 'center',
     },

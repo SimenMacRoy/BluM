@@ -6,9 +6,12 @@ import SearchBar from './SearchBar';
 import MealTab from './MealTab';
 import IngredientsTab from './IngredientsTab';
 import RecipeTab from './RecipeTab';
+import { useNavigation } from '@react-navigation/native';
 
 const RecipeScreenDetail = ({ route }) => {
-    const { dishId } = route.params;
+    const { dishId, item, updateBasketItem, itemToUpdate } = route.params || {};
+
+    const navigation = useNavigation();
 
     const [dish, setDish] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -33,6 +36,17 @@ const RecipeScreenDetail = ({ route }) => {
         };
 
         fetchDish();
+
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={() => {
+                    // Call the function here
+                    updateBasketItem(item); // Pass the item to updateBasketItem
+                }}>
+                    <Text>Modify Basket</Text> {/* Change the button text */}
+                </TouchableOpacity>
+            ),
+        });
     }, [dishId]);
 
     if (loading) {
@@ -66,20 +80,26 @@ const Tab = createMaterialTopTabNavigator();
 const TabNavigator = ({ dish }) => {
     return (
         <Tab.Navigator
-            tabBarOptions={{
-                style: { backgroundColor: 'white' },
-                activeTintColor: 'black',
-                indicatorStyle: { backgroundColor: '#15FCFC' },
-                labelStyle: { fontWeight: 'bold' }
+            screenOptions={{
+                tabBarActiveTintColor: 'black',
+                tabBarLabelStyle: {
+                    fontWeight: 'bold'
+                },
+                tabBarIndicatorStyle: {
+                    backgroundColor: '#15FCFC'
+                },
+                tabBarStyle: {
+                    backgroundColor: 'white'
+                }
             }}
         >
             <Tab.Screen name="Recette" component={RecipeTab} initialParams={{ dish }} />
             <Tab.Screen name="Ingredients" component={IngredientsTab} initialParams={{ dish }} />
             <Tab.Screen name="Commander Repas" component={MealTab} initialParams={{ dish }} />
-            
         </Tab.Navigator>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

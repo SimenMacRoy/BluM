@@ -11,14 +11,9 @@ import SearchBar from './SearchBar';
 const DeliveryScreen = () => {
     return (
         // ScrollView allows the content to be scrollable.
-        <ScrollView>
-            {/* Header component displays the header of the screen */}
-            <Header />
-            {/* SearchBar component provides a search bar functionality */}
-            <SearchBar />
-            {/* Basket component shows the user's basket */}
+        <View>
             <Basket />
-        </ScrollView>
+        </View>
     );
 };
 
