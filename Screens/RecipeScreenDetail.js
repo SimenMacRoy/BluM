@@ -70,14 +70,14 @@ const RecipeScreenDetail = ({ route }) => {
                     <Text style={styles.foodTitle}>{dish.title}</Text>
                 </View>
             )}
-            {dish && <TabNavigator dish={dish} />}
+            {dish && <TabNavigator dish={dish} itemToUpdate={itemToUpdate}/>}
         </View>
     );
 };
 
 const Tab = createMaterialTopTabNavigator();
 
-const TabNavigator = ({ dish }) => {
+const TabNavigator = ({ dish, itemToUpdate }) => {
     return (
         <Tab.Navigator
             screenOptions={{
@@ -95,7 +95,7 @@ const TabNavigator = ({ dish }) => {
         >
             <Tab.Screen name="Recette" component={RecipeTab} initialParams={{ dish }} />
             <Tab.Screen name="Ingredients" component={IngredientsTab} initialParams={{ dish }} />
-            <Tab.Screen name="Commander Repas" component={MealTab} initialParams={{ dish }} />
+            <Tab.Screen name="Commander Repas" component={MealTab} initialParams={{ dish, existingItem: itemToUpdate }} />
         </Tab.Navigator>
     );
 };

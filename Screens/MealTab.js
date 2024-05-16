@@ -33,25 +33,36 @@ const MealTab = ({ route }) => {
     }, [existingItem]);
 
     useEffect(() => {
-        // Fetch ingredients from backend
-        const fetchIngredients = async () => {
-            try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setSpecifications(data.map(ingredient => ({ ...ingredient, quantity: 0 })));
-                setLoading(false);
-            } catch (err) {
-                console.error('Failed to fetch ingredients:', err);
-                setError(err.message);
-                setLoading(false);
-            }
-        };
+        // Only fetch new specifications if there is no existing item or the existing item has no specifications.
+        if (!existingItem || !existingItem.specifications || existingItem.specifications.length === 0) {
+            fetchIngredients();
+        } else {
+            setSpecifications(existingItem.specifications); // Use existing specifications if available
+            setLoading(false);
+        }
+    }, [dish.id, existingItem]);
 
-        fetchIngredients();
-    }, [dish.id]);
+    const fetchIngredients = async () => {
+        try {
+            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            const initialSpecifications = data.map(ingredient => ({
+                ...ingredient,
+                quantity: existingItem && existingItem.specifications.find(spec => spec.id === ingredient.id) ? 
+                          existingItem.specifications.find(spec => spec.id === ingredient.id).quantity : 
+                          0
+            }));
+            setSpecifications(initialSpecifications);
+            setLoading(false);
+        } catch (err) {
+            console.error('Failed to fetch ingredients:', err);
+            setError(err.message);
+            setLoading(false);
+        }
+    };
 
     const generateDeliveryTimes = (chosenTime) => {
         const proposedTimes = [];
@@ -71,20 +82,30 @@ const MealTab = ({ route }) => {
 
     const handleAddToBasket = () => {
         if (!quantity || quantity <= 0) {
-            alert('Please enter a valid quantity');
+            alert('Veuillez entrez une quantité valide !');
             return;
         }
-
+    
         let totalPrice = parseFloat(dish.price) * parseInt(quantity);
-
-        specifications.forEach(ingredient => {
-            totalPrice += parseFloat(ingredient.price)/10 * ingredient.quantity;
+        let activeSpecifications = specifications.filter(spec => spec.quantity > 0);
+    
+        activeSpecifications.forEach(spec => {
+            const ingredientPrice = parseFloat(spec.price);
+            totalPrice += (ingredientPrice / 10) * spec.quantity;
         });
-
-        addToBasket({ ...dish, quantity: parseInt(quantity), deliveryTime, deliveryDate, specifications, type: 'Plat', totalPrice });
-        alert('Dish added to basket!');
+    
+        addToBasket({
+            ...dish,
+            quantity: parseInt(quantity),
+            deliveryTime,
+            deliveryDate,
+            specifications: activeSpecifications,
+            type: 'Plat',
+            totalPrice: totalPrice.toFixed(2)
+        });
+        alert(existingItem ? 'Panier modifié' : 'Plat ajouté au panier !');
     };
-
+    
     const onDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || deliveryDate;
         setShowDatePicker(false);
@@ -182,7 +203,7 @@ const MealTab = ({ route }) => {
                 </View>
 
                 <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
-                    <Text style={styles.buttonText}>Ajouter au panier</Text>
+                    <Text style={styles.buttonText}>{existingItem ? 'Mettre à jour' : 'Ajouter au panier'}</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>

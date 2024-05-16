@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { FontAwesome } from '@expo/vector-icons';
 import Header from './Header';
-import SearchBar from './SearchBar';
 import BasketContext from './BasketContext';
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
@@ -13,7 +13,12 @@ const IngredientsDetailScreen = ({ route }) => {
     const [ingredient, setIngredient] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [existingItem, setExistingItem] = useState(null);
     const navigation = useNavigation(); // Initialize navigation
+    const [deliveryDate, setDeliveryDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [deliveryTime, setDeliveryTime] = useState('');
+    const [deliveryTimes, setDeliveryTimes] = useState([]);
 
     useEffect(() => {
         // Fetch ingredient from backend
@@ -28,10 +33,16 @@ const IngredientsDetailScreen = ({ route }) => {
                 setLoading(false);
 
                 // Set initial quantity from basket
-                const existingItem = basketItems.find(item => item.id === ingredientId);
-                if (existingItem) {
-                    setQuantity(existingItem.quantity);
+                const foundItem = basketItems.find(item => item.id === ingredientId);
+                if (foundItem) {
+                    setExistingItem(foundItem);
+                    setQuantity(foundItem.quantity);
+                    setDeliveryDate(new Date(foundItem.deliveryDate));
+                    setDeliveryTime(foundItem.deliveryTime || '');
+                } else {
+                    setExistingItem(null);
                 }
+                generateDeliveryTimes();
             } catch (err) {
                 console.error('Error:', err);
                 setError(err.message);
@@ -42,29 +53,38 @@ const IngredientsDetailScreen = ({ route }) => {
         fetchIngredient();
     }, [ingredientId, basketItems]);
 
-    // Increase the quantity
-    const increaseQuantity = () => setQuantity(quantity + 1);
-    
-    // Decrease the quantity but not below 1
-    const decreaseQuantity = () => quantity > 1 && setQuantity(quantity - 1);
+    const generateDeliveryTimes = () => {
+        let times = [];
+        let currentTime = new Date();
+        currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
+        for (let i = 0; i < 8; i++) { // 6 times within 3 hours
+            let newTime = new Date(currentTime.getTime() + i * 30 * 60000);
+            times.push(newTime.toTimeString().substring(0, 5));
+        }
+        setDeliveryTimes(times);
+        setDeliveryTime(times[0]);
+    };
 
-    // Handle adding ingredient to the basket
     const handleAddToBasket = () => {
         if (ingredient && quantity > 0) {
-            addToBasket({ ...ingredient, quantity });
-            alert(`Updated ${ingredient.title} with quantity ${quantity} in basket.`);
+            let totalPrice = parseFloat(ingredient.price) * parseInt(quantity);
+            addToBasket({
+                ...ingredient,
+                quantity,
+                totalPrice: totalPrice.toFixed(2),
+                deliveryDate: deliveryDate.toISOString(),
+                deliveryTime
+            });
+            alert(existingItem ? `L'item ${ingredient.title} a été modifié par ${quantity} quantités.` : `Ajout de ${quantity} quantités de ${ingredient.title} à votre panier.`);
         } else {
             alert('Please select a quantity before adding to basket.');
         }
     };
 
-    const handleResultPress = (ingredient) => {
-        navigation.navigate('IngredientsDetailScreen', { ingredientId: ingredient.id });
-    };
-
-    const handleSearch = (results) => {
-        setSearchResults(results);
-        setIsSearching(results.length > 0);
+    const onDateChange = (event, selectedDate) => {
+        const currentDate = selectedDate || deliveryDate;
+        setShowDatePicker(false);
+        setDeliveryDate(currentDate);
     };
 
     if (loading) {
@@ -101,11 +121,11 @@ const IngredientsDetailScreen = ({ route }) => {
                     <Text style={styles.description}>{ingredient.description}</Text>
 
                     <View style={styles.quantityControl}>
-                        <TouchableOpacity onPress={decreaseQuantity}>
+                        <TouchableOpacity onPress={() => setQuantity(Math.max(1, quantity - 1))}>
                             <FontAwesome name="minus" size={24} color="black" />
                         </TouchableOpacity>
                         <Text style={styles.quantity}>{quantity}</Text>
-                        <TouchableOpacity onPress={increaseQuantity}>
+                        <TouchableOpacity onPress={() => setQuantity(quantity + 1)}>
                             <FontAwesome name="plus" size={24} color="black" />
                         </TouchableOpacity>
                     </View>
@@ -114,8 +134,32 @@ const IngredientsDetailScreen = ({ route }) => {
                         <Text style={styles.packageInfo}>{quantity} {ingredient.package} = {(ingredient.price * quantity).toFixed(2)}$</Text>
                     </View>
 
+                    <Text style={styles.subHeader}>Choisir l'heure de livraison</Text>
+                    <View style={styles.timeContainer}>
+                        {deliveryTimes.map((time, index) => (
+                            <TouchableOpacity key={index} style={[styles.timeButton, deliveryTime === time && styles.selectedTime]} onPress={() => setDeliveryTime(time)}>
+                                <Text style={styles.timeText}>{time}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    <Text style={styles.subHeader}>Choisir la date de livraison</Text>
+                    <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+                        <Text style={styles.dateText}>
+                            {showDatePicker ? 'Choose Date' : `Date selectionnée: ${deliveryDate.toLocaleDateString()}`}
+                        </Text>
+                    </TouchableOpacity>
+                    {showDatePicker && (
+                        <DateTimePicker
+                            value={deliveryDate}
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                        />
+                    )}
+
                     <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
-                        <Text style={styles.addToBasketText}>Add to Basket</Text>
+                        <Text style={styles.addToBasketText}>{existingItem ? 'Modifier le panier' : 'Ajouter au panier'}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -170,11 +214,6 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
         borderRadius: 50,
     },
-    foodTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginTop: 10,
-    },
     scroll: {
         flex: 1,
         backgroundColor: 'white',
@@ -188,6 +227,51 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
     },
+    dateButton: {
+        padding: 10,
+        backgroundColor: '#e7e7e7',
+        borderRadius: 5,
+        marginBottom: 15,
+    },
+    dateText: {
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    subHeader: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    timeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+    },
+    timeButton: {
+        backgroundColor: '#15FCFC',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderRadius: 20,
+        margin: 5,
+    },
+    selectedTime: {
+        backgroundColor: '#15B8B8',
+    },
+    timeText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        padding: 10,
+        fontSize: 16,
+        borderRadius: 5,
+        backgroundColor: 'white',
+        marginBottom: 15,
+    }
 });
 
 export default IngredientsDetailScreen;

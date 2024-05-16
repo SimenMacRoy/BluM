@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Alert, View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { Alert, View, Text, Image, StyleSheet, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import BasketContext from './BasketContext';
 import { useNavigation } from '@react-navigation/native';
 import Header from './Header';
@@ -11,12 +11,22 @@ const Basket = () => {
     const navigateToCheckout = () => {
         navigation.navigate('CheckoutScreen');
     };
-
+    
     const handleModify = (item) => {
         const screen = item.type === 'Plat' ? 'RecipeScreenDetail' : 'IngredientsDetailScreen';
         const paramKey = item.type === 'Plat' ? 'dishId' : 'ingredientId';
-        navigation.navigate(screen, { [paramKey]: item.id, itemToUpdate: item  });
+    
+        // Prepare the modified item, conditionally handle deliveryDate
+        const modifiedItem = {
+            ...item,
+            // Only convert deliveryDate to ISO string if the item type is 'Plat'
+            deliveryDate: item.type === 'Plat' ? new Date(item.deliveryDate).toISOString() : item.deliveryDate
+        };
+    
+        // Navigate to the detail screen with the modified item
+        navigation.navigate(screen, { [paramKey]: item.id, itemToUpdate: modifiedItem });
     };
+    
 
     const updateBasketItem = (updatedItem) => {
         setBasketItems((prevItems) => {
@@ -76,6 +86,9 @@ const Basket = () => {
         }
     
         const deliveryTime = item.deliveryTime ? item.deliveryTime : '';
+        const specificationsText = item.specifications?.length > 0
+            ? item.specifications.map(spec => `${spec.title} (x${spec.quantity})`).join(', ')
+            : "Aucune spécification pour ce repas";
     
         return (
             <View style={styles.itemContainer}>
@@ -83,9 +96,9 @@ const Basket = () => {
                 <View style={styles.infoContainer}>
                     <Text style={styles.title}>{item.title}</Text>
                     <Text style={styles.boldGreyText}>Quantité: <Text style={styles.normalText}>{item.quantity}</Text></Text>
-                    <Text style={styles.boldGreyText}>Prix Total: <Text style={styles.normalText}>${item.totalPrice.toFixed(2)}</Text></Text>
-                    {item.type === 'Plat' && <Text style={styles.boldGreyText}>Spécifications: <Text style={styles.normalText}>{item.specifications.map(spec => spec.title).join(', ')}</Text></Text>}
-                    {item.type === 'Plat' && <Text style={styles.boldGreyText}>Date/Heure: <Text style={styles.normalText}>{deliveryDateString} à {deliveryTime}</Text></Text>}
+                    {item.type === 'Plat' ? <Text style={styles.boldGreyText}>Prix Total: <Text style={styles.normalText}>${item.totalPrice}</Text></Text> : <Text style={styles.boldGreyText}>Prix Total: <Text style={styles.normalText}>${(item.price * item.quantity).toFixed(2)}</Text></Text> }
+                    {item.type === 'Plat' && <Text style={styles.boldGreyText}>Spécifications: <Text style={styles.normalText}>{specificationsText}</Text></Text>}
+                    <Text style={styles.boldGreyText}>Date/Heure: <Text style={styles.normalText}>{deliveryDateString} à {deliveryTime}</Text></Text>
                 </View>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={() => handleModify(item)} style={styles.modifyButton}>
@@ -117,12 +130,14 @@ const Basket = () => {
                     <Image source={require('C:\\Users\\Mac Roy\\Documents\\bluMApp\\assets\\addToCart.png')} style={styles.basketIcon} />
                 </View>
             )}
+            
             <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')} style={styles.button}>
                 <Text style={styles.buttonText}>Magasiner</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={navigateToCheckout} disabled={basketItems.length === 0} style={[styles.button, { backgroundColor: basketItems.length === 0 ? 'grey' : 'blue' }]}>
                 <Text style={styles.buttonText}>Payer</Text>
             </TouchableOpacity>
+            
         </View>
     );
 };
