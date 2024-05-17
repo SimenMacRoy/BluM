@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import BasketContext from './BasketContext';
+import DateTimeSelector from '../utils/DateTimeSelector';
 
 const IngredientsTab = ({ route }) => {
     const { dish } = route.params;
@@ -9,11 +10,13 @@ const IngredientsTab = ({ route }) => {
     const [ingredientsList, setIngredientsList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [deliveryDate, setDeliveryDate] = useState(new Date());
+    const [deliveryTime, setDeliveryTime] = useState('');
+    const [deliveryTimes, setDeliveryTimes] = useState([]);
 
     const { addToBasket } = useContext(BasketContext);
 
     useEffect(() => {
-        // Fetch ingredients from backend
         const fetchIngredients = async () => {
             try {
                 const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`);
@@ -21,8 +24,6 @@ const IngredientsTab = ({ route }) => {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                
-                // Initialize quantity to 1 for all ingredients
                 const initializedIngredients = data.map(ingredient => ({
                     ...ingredient,
                     quantity: 1
@@ -30,6 +31,7 @@ const IngredientsTab = ({ route }) => {
                 
                 setIngredientsList(initializedIngredients);
                 setLoading(false);
+                generateDeliveryTimes(); // This could also be moved to DateTimeSelector if it's not used elsewhere
             } catch (err) {
                 console.error('Failed to fetch ingredients:', err);
                 setError(err.message);
@@ -40,81 +42,81 @@ const IngredientsTab = ({ route }) => {
         fetchIngredients();
     }, [dish.id]);
 
+    const generateDeliveryTimes = () => {
+        let times = [];
+        let currentTime = new Date();
+        currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
+        for (let i = 0; i < 8; i++) {
+            let newTime = new Date(currentTime.getTime() + i * 30 * 60000);
+            times.push(newTime.toTimeString().substring(0, 5));
+        }
+        setDeliveryTimes(times);
+        setDeliveryTime(times[0]);
+    };
+
+    const handleAddToBasket = () => {
+        ingredientsList.forEach(ingredient => {
+            addToBasket({
+                ...ingredient,
+                quantity: ingredient.quantity,
+                deliveryDate: deliveryDate.toISOString(),
+                deliveryTime
+            });
+        });
+        alert('Ingredients added to basket with delivery details!');
+    };
+
     if (loading) {
         return <ActivityIndicator size="large" color="#15FCFC" />;
     }
 
     if (error) {
-        return (
-            <View>
-                <Text style={{ color: 'red' }}>Error: {error}</Text>
-            </View>
-        );
+        return <View><Text style={{ color: 'red' }}>Error: {error}</Text></View>;
     }
-
-    const increaseQuantity = (index) => {
-        const newIngredientsList = [...ingredientsList];
-        newIngredientsList[index].quantity++;
-        setIngredientsList(newIngredientsList);
-    };
-
-    const decreaseQuantity = (index) => {
-        const newIngredientsList = [...ingredientsList];
-        if (newIngredientsList[index].quantity > 1) {
-            newIngredientsList[index].quantity--;
-            setIngredientsList(newIngredientsList);
-        }
-    };
-
-    const deleteIngredient = (index) => {
-        const newIngredientsList = [...ingredientsList];
-        newIngredientsList.splice(index, 1);
-        setIngredientsList(newIngredientsList);
-    };
-
-    const handleAddToBasket = () => {
-        ingredientsList.forEach(ingredient => {
-            addToBasket({ ...ingredient, quantity: ingredient.quantity });
-        });
-        alert('Ingredients added to basket!');
-    };
 
     return (
         <ScrollView style={styles.scroll}>
             <View style={styles.ingredientsContainer}>
                 {ingredientsList.map((ingredient, index) => {
-                    const quantity = ingredient.quantity || 0;
-                    const packaging = ingredient.package || 'unit';
-                    const price = parseFloat(ingredient.price) || 0;
-                    const totalPrice = (price * quantity).toFixed(2);
-
                     return (
                         <View key={index} style={styles.ingredientItem}>
                             <View style={styles.row}>
                                 <Image source={{ uri: ingredient.image }} style={styles.image} />
                                 <Text style={styles.ingredientName}>{ingredient.title}</Text>
                                 <View style={styles.quantityContainer}>
-                                    <TouchableOpacity onPress={() => decreaseQuantity(index)}>
+                                    <TouchableOpacity onPress={() => setIngredientsList(prev => {
+                                        const newList = [...prev];
+                                        newList[index].quantity = Math.max(1, newList[index].quantity - 1);
+                                        return newList;
+                                    })}>
                                         <FontAwesome name="minus" size={24} color="black" />
                                     </TouchableOpacity>
-                                    <Text style={styles.quantity}>{quantity}</Text>
-                                    <TouchableOpacity onPress={() => increaseQuantity(index)}>
+                                    <Text style={styles.quantity}>{ingredient.quantity}</Text>
+                                    <TouchableOpacity onPress={() => setIngredientsList(prev => {
+                                        const newList = [...prev];
+                                        newList[index].quantity += 1;
+                                        return newList;
+                                    })}>
                                         <FontAwesome name="plus" size={24} color="black" />
                                     </TouchableOpacity>
                                 </View>
-                                <TouchableOpacity onPress={() => deleteIngredient(index)}>
-                                    <FontAwesome name="trash" size={24} color="red" />
-                                </TouchableOpacity>
                             </View>
                             <View style={styles.descriptionContainer}>
                                 <Text style={styles.description}>
-                                    {quantity} {packaging} = {totalPrice}$
+                                    {ingredient.quantity} {ingredient.package} = ${(ingredient.price * ingredient.quantity).toFixed(2)}
                                 </Text>
                             </View>
                         </View>
                     );
                 })}
             </View>
+            <DateTimeSelector
+                initialDate={deliveryDate}
+                onDateChange={setDeliveryDate}
+                initialTime={deliveryTime}
+                onTimeChange={setDeliveryTime}
+                deliveryTimes={deliveryTimes}
+            />
             <TouchableOpacity style={styles.checkoutButton} onPress={handleAddToBasket}>
                 <Text style={styles.checkoutText}>Ajouter au panier</Text>
             </TouchableOpacity>

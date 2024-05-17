@@ -65,12 +65,27 @@ const RecipeScreenDetail = ({ route }) => {
         <View style={styles.container}>
             <Header />
             {dish && (
-                <View style={styles.foodContainer}>
+                <View style={styles.detailContainer}>
                     <Image source={{ uri: dish.image }} style={styles.foodImage} />
-                    <Text style={styles.foodTitle}>{dish.title}</Text>
+                    <View style={styles.titleContainer}>
+                        <View style={{ flexDirection: 'row'}}>
+                            <Text style={styles.foodTitle}>{dish.title}</Text>
+                            <Text style={styles.countryFlag}>{dish.countryFlag}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row'}}>
+                            <Text style={styles.descriptionTitle}>Desc : </Text>
+                            <Text style={styles.descriptionText}>{dish.description}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row'}}>
+                            <Text style={styles.difficultyTitle}>Diff : </Text>
+                            <Text style={styles.difficultyText}>{dish.difficulty}</Text>
+                        </View>
+                    </View>
                 </View>
             )}
+            
             {dish && <TabNavigator dish={dish} itemToUpdate={itemToUpdate}/>}
+            
         </View>
     );
 };
@@ -104,26 +119,72 @@ const TabNavigator = ({ dish, itemToUpdate }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
     },
-    foodContainer: {
-        backgroundColor: '#15FCFC',
+    detailContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
         padding: 10,
-        borderRadius: 30,
-        margin: 10
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        marginBottom: 10,
+        backgroundColor: '#e1f2f2',
+    },
+    titleContainer: {
+        flex: 1,
+        marginLeft: 10,
+        flexDirection: 'column',
+        justifyContent: 'center',
     },
     foodImage: {
-        width: 125,
-        height: 125,
-        resizeMode: 'cover',
-        borderRadius: 50
+        width: '30%',
+        aspectRatio: 1,
+        borderRadius: 60,
+    },
+    countryFlag: {
+        fontSize: 20,
+        padding: 5
     },
     foodTitle: {
-        fontSize: 24,
+        fontSize: 30,
         fontWeight: 'bold',
-        marginTop: 10
-    }
+        color: 'white',
+    },
+    descriptionContainer: {
+        paddingHorizontal: 15,
+    },
+    descriptionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 5,
+        color: '#333',
+        marginTop: 2,
+        color: 'white',
+    },
+    descriptionText: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 5,
+        color: 'white',
+    },
+    difficultyTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginTop: 5,
+        color: 'white',
+    },
+    difficultyText: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 5,
+        color: 'white',
+    },
+    separator: {
+        height: 1,
+        backgroundColor: '#ccc',
+        marginVertical: 10
+    },
 });
 
 export default RecipeScreenDetail;

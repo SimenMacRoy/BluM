@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { FontAwesome } from '@expo/vector-icons';
 import Header from './Header';
 import BasketContext from './BasketContext';
+import DateTimeSelector from '../utils/DateTimeSelector';
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 
 const IngredientsDetailScreen = ({ route }) => {
@@ -20,6 +21,26 @@ const IngredientsDetailScreen = ({ route }) => {
     const [deliveryTime, setDeliveryTime] = useState('');
     const [deliveryTimes, setDeliveryTimes] = useState([]);
 
+    function formatPackage(quantity, packageDescription) {
+        // Sépare le package en "prefix" et "unit" (ex. '1 sac de', '3kg')
+        const parts = packageDescription.split(' ');
+        if (quantity > 1) {
+            if (parts[0] === 'Sac') {
+                // Pluralize and adjust the prefix based on French grammar rules
+                return `${quantity} sacs de ${parts[2]} ${parts[3]}`;
+            } else if (parts[0] === 'Unité') {
+                // Simple pluralization for "unité"
+                return `${quantity} unités`;
+            } else {
+                // Default pluralization logic
+                return `${quantity} ${packageDescription}s`;
+            }
+        } else {
+            // No change needed for singular
+            return `${quantity} ${packageDescription}`;
+        }
+    
+    }
     useEffect(() => {
         // Fetch ingredient from backend
         const fetchIngredient = async () => {
@@ -131,32 +152,19 @@ const IngredientsDetailScreen = ({ route }) => {
                     </View>
 
                     <View style={styles.packageContainer}>
-                        <Text style={styles.packageInfo}>{quantity} {ingredient.package} = {(ingredient.price * quantity).toFixed(2)}$</Text>
-                    </View>
-
-                    <Text style={styles.subHeader}>Choisir l'heure de livraison</Text>
-                    <View style={styles.timeContainer}>
-                        {deliveryTimes.map((time, index) => (
-                            <TouchableOpacity key={index} style={[styles.timeButton, deliveryTime === time && styles.selectedTime]} onPress={() => setDeliveryTime(time)}>
-                                <Text style={styles.timeText}>{time}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-
-                    <Text style={styles.subHeader}>Choisir la date de livraison</Text>
-                    <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-                        <Text style={styles.dateText}>
-                            {showDatePicker ? 'Choose Date' : `Date selectionnée: ${deliveryDate.toLocaleDateString()}`}
+                        <Text style={styles.packageInfo}>
+                            {formatPackage(quantity, ingredient.package)} = ${(ingredient.price * quantity).toFixed(2)}$
                         </Text>
-                    </TouchableOpacity>
-                    {showDatePicker && (
-                        <DateTimePicker
-                            value={deliveryDate}
-                            mode="date"
-                            display="default"
-                            onChange={onDateChange}
-                        />
-                    )}
+                    </View>
+
+
+                    <DateTimeSelector
+                        initialDate={deliveryDate}
+                        onDateChange={setDeliveryDate}
+                        initialTime={deliveryTime}
+                        onTimeChange={setDeliveryTime}
+                        deliveryTimes={deliveryTimes}
+                    />
 
                     <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
                         <Text style={styles.addToBasketText}>{existingItem ? 'Modifier le panier' : 'Ajouter au panier'}</Text>
