@@ -4,6 +4,9 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const stripe = require('stripe')('sk_test_51PIRk7DIrmiE2Hgb3odn47yqCN3ojcMsp70vzrz93fqUIeOxtl35xvqdzBNX8Tji2UkxtdJvnWxgNDpRlPS80AA900horxTCdC');
+const nodemailer = require('nodemailer');
+const bodyParser = require('body-parser');
 const path = require('path');
 
 const mysql = require('mysql2');
@@ -16,6 +19,7 @@ const bcrypt = require('bcrypt');
 // Middleware
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
+app.use(bodyParser.json());
 
 // Directly specify database credentials
 const db = mysql.createConnection({
@@ -602,6 +606,51 @@ app.post('/api/surveys', (req, res) => {
             return;
         }
         res.status(201).json({ message: 'Survey saved successfully' });
+    });
+});
+
+app.post('/api/create-payment-intent', async (req, res) => {
+    const { amount } = req.body;
+    console.log('Request received for amount:', amount);
+
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'usd',
+        });
+        console.log('Payment Intent created:', paymentIntent.client_secret);
+
+        res.send({
+            clientSecret: paymentIntent.client_secret,
+        });
+    } catch (error) {
+        console.error('Error creating payment intent:', error);
+        res.status(400).send({ error: error.message });
+    }
+});
+app.post('/api/send-email', (req, res) => {
+    const { name, surname, postalAddress, email, orderDetails } = req.body;
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'macroysimen@gmail.com',
+            pass: 'markkate',
+        },
+    });
+
+    const mailOptions = {
+        from: 'macroysimen@gmail.com',
+        to: 'keilaroy26@gmail.com',
+        subject: 'New Order',
+        text: `New order received from ${name} ${surname}.\n\nAddress: ${postalAddress}\n\nOrder Details:\n${orderDetails}\n\nEmail: ${email}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(400).send({ error: error.message });
+        }
+        res.send({ success: 'Email sent successfully' });
     });
 });
 

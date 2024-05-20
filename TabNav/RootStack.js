@@ -28,6 +28,7 @@ import ReceiptScreen from '../Screens/ReceiptScreen';
 import FAQsScreen from '../Screens/FAQsScreen';
 import SurveyScreen from '../Screens/SurveyScreen';
 import RecipeScreen from '../Screens/RecipeScreen';
+import CheckoutScreen from '../Screens/CheckoutScreen';
 
 
 
@@ -67,6 +68,7 @@ const RootNavigator = () => {
       <RootStack.Screen name="FAQsScreen" component={FAQsScreen} options={{ headerShown:false }}/>
       <RootStack.Screen name="SurveyScreen" component={SurveyScreen} options={{ headerShown:false }}/>
       <RootStack.Screen name="RecipeScreen" component={RecipeScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="CheckoutScreen" component={CheckoutScreen} options={{ headerShown:false }}/>
     </RootStack.Navigator>
   );
 };
