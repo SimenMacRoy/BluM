@@ -1,13 +1,14 @@
-// LoginScreen.js
 import React, { useState, useContext } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { validateEmail } from '../utils/validateEmail';
 import UserContext from './UserContext'; // Adjust the path as necessary
 
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const navigation = useNavigation();
     const { loginUser } = useContext(UserContext);
 
@@ -33,7 +34,7 @@ const LoginScreen = () => {
                 });
                 navigation.navigate('MainTabs');
             } else {
-                Alert.alert('Invalid Credentials', data.error);
+                Alert.alert('Email ou mot de passe invalide', data.error);
             }
         } catch (error) {
             console.error('Error during login:', error);
@@ -63,12 +64,22 @@ const LoginScreen = () => {
                         keyboardType='email-address'
                     />
                     <Text style={styles.textField}>Mot de passe</Text>
-                    <TextInput 
-                        style={styles.inputText}
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry={true}
-                    />
+                    <View style={styles.passwordContainer}>
+                        <TextInput 
+                            style={styles.passwordInput}
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry={!isPasswordVisible}
+                        />
+                        <Pressable onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                            <Icon
+                                name={isPasswordVisible ? "visibility" : "visibility-off"}
+                                size={24}
+                                color="gray"
+                                style={styles.eyeIcon}
+                            />
+                        </Pressable>
+                    </View>
                     <Pressable 
                         style={styles.buttonLogin}
                         onPress={handleLogin}
@@ -76,6 +87,9 @@ const LoginScreen = () => {
                         <Text style={[styles.buttonText, validateEmail(email) ? { backgroundColor : 'green' } : {backgroundColor : 'grey'}]}>
                             Login
                         </Text>
+                    </Pressable>
+                    <Pressable onPress={() => navigation.navigate('ForgotPasswordScreen')}>
+                        <Text style={styles.forgotPasswordText}>Mot de passe oublié?</Text>
                     </Pressable>
                     <Text style={styles.info}>
                         Pas de compte ?
@@ -110,11 +124,10 @@ const styles = StyleSheet.create({
     welcomeContainer: {
         position: 'absolute',
         top: 320, // Adjust the top position as needed
-        left: 45,
         marginTop: 5,
         marginBottom: 10,
-        alignContent: 'center',
-      },
+        marginLeft: 30,
+    },
     welcomeText: {
         fontWeight: 'bold',
         fontSize: 24,
@@ -127,12 +140,20 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         marginHorizontal: 25,
         marginTop: 390,
+        marginBottom: 20
     },
     scrollContainer: {
         paddingBottom: 10,
     },
+    forgotPasswordText: {
+        fontSize: 16,
+        color: 'blue',
+        textAlign: 'center',
+        marginTop: 10,
+        textDecorationLine: 'underline',
+    },
     textField: { 
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 'bold',
         color: 'black',
         paddingLeft: 10,
@@ -146,10 +167,30 @@ const styles = StyleSheet.create({
         borderColor: 'gray',
         borderWidth: 1,
         backgroundColor: 'white',
-        fontSize: 20,
+        fontSize: 16,
         marginLeft: 10,
         padding: 10,
-    }, 
+    },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 20,
+        borderColor: 'gray',
+        borderWidth: 1,
+        backgroundColor: 'white',
+        paddingRight: 10,
+        marginBottom: 10,
+        marginHorizontal: 10,
+    },
+    passwordInput: {
+        flex: 1,
+        height: 50,
+        fontSize: 16,
+        padding: 10,
+    },
+    eyeIcon: {
+        marginLeft: 10,
+    },
     buttonLogin: {
         width: 155,
         height: 60,
@@ -178,8 +219,7 @@ const styles = StyleSheet.create({
         borderColor: 'gray',
         marginTop: 20,
         marginLeft: 77.5,
-        backgroundColor: 'yellow',
-        
+        backgroundColor: 'black',
     },
 })
 

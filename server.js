@@ -1,5 +1,3 @@
-// server.js
-
 // Import dependencies
 const express = require('express');
 const cors = require('cors');
@@ -8,13 +6,13 @@ const stripe = require('stripe')('sk_test_51PIRk7DIrmiE2Hgb3odn47yqCN3ojcMsp70vz
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
 const path = require('path');
-
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const mysql = require('mysql2');
 
 // Create an Express app
 const app = express();
-
-const bcrypt = require('bcrypt');
 
 // Middleware
 app.use(cors()); // Enable CORS
@@ -37,7 +35,24 @@ db.connect(err => {
         console.log('Connected to database as id', db.threadId);
     }
 });
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'macroysimen@gmail.com', // Your email address
+        pass: 'djkq opub iyxg ajud', // Your email password
+    },
+    tls: {
+        rejectUnauthorized: false // This may help if there are issues with the server's SSL/TLS configuration
+    }
+});
 
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('Email configuration error:', error);
+    } else {
+        console.log('Email server is ready to take our messages');
+    }
+});
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/')  // Ensure this directory exists
@@ -450,7 +465,7 @@ app.post('/api/login', (req, res) => {
     }
 
     const query = 'SELECT userID, name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, password FROM USERS WHERE email = ?';
-    db.query(query, [email], (err, results) => {
+    db.query(query, [email], async (err, results) => {
         if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Internal Server Error' });
@@ -462,8 +477,9 @@ app.post('/api/login', (req, res) => {
 
         const user = results[0];
 
-        // Check if the provided password matches the stored password
-        if (password === user.password) {
+        // Compare the provided password with the hashed password stored in the database
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (isPasswordValid) {
             // Return all the necessary user details
             res.status(200).json({
                 success: true,
@@ -497,6 +513,23 @@ app.post('/api/register', async (req, res) => {
             console.error('Error inserting user:', err);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
+
+        // Send registration confirmation email
+        const mailOptions = {
+            from: 'macroysimen@gmail.com', // Your email address
+            to: email, // The user's email address
+            subject: 'Bienvenue sur notre application !',
+            text: `Bonjour ${name} ${surname},\n\nMerci de vous être inscrit sur notre application. Nous sommes ravis de vous avoir parmi nous !\n\nCordialement,\nL'équipe de l'application.`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Error sending email:', error);
+                return res.status(500).json({ error: 'Error sending registration email' });
+            }
+            console.log('Email sent:', info.response);
+        });
+
         res.status(201).json({ success: true });
     });
 });
@@ -552,7 +585,7 @@ app.post('/api/users/:userID/update', (req, res) => {
             phone_number = ?,
             postal_address = ?,
             country_of_origin = ?,
-            profile_picture = ?,
+            profile_picture = ?
         WHERE userID = ?
     `;
 
@@ -630,18 +663,9 @@ app.post('/api/create-payment-intent', async (req, res) => {
 });
 app.post('/api/send-email', (req, res) => {
     const { name, surname, postalAddress, email, orderDetails } = req.body;
-
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'macroysimen@gmail.com',
-            pass: 'markkate',
-        },
-    });
-
     const mailOptions = {
         from: 'macroysimen@gmail.com',
-        to: 'keilaroy26@gmail.com',
+        to: email,
         subject: 'New Order',
         text: `New order received from ${name} ${surname}.\n\nAddress: ${postalAddress}\n\nOrder Details:\n${orderDetails}\n\nEmail: ${email}`,
     };
@@ -655,6 +679,72 @@ app.post('/api/send-email', (req, res) => {
 });
 
 
+// Password reset endpoints
+app.post('/api/reset-password', (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).send({ error: 'Email is required' });
+    }
+
+    const query = 'SELECT userID FROM USERS WHERE email = ?';
+    db.query(query, [email], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).send({ error: 'Internal Server Error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send({ error: 'Email not found' });
+        }
+
+        const userID = results[0].userID;
+        const token = jwt.sign({ userID }, 'your_jwt_secret', { expiresIn: '1h' });
+
+        const mailOptions = {
+            from: 'macroysimen@gmail.com', // Change to your email
+            to: email,
+            subject: 'Password Reset',
+            text: `Click on the following link to reset your password: http://192.168.69.205:3006/reset-password/${token}`,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Error sending email:', error);
+                return res.status(500).send({ error: 'Error sending email' });
+            }
+            console.log('Email sent:', info.response);
+            res.json({ success: true, message: 'Password reset email sent' });
+        });
+    });
+});
+
+app.post('/api/reset-password/:token', async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(400).send({ error: 'Password is required' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const query = 'UPDATE USERS SET password = ? WHERE userID = ?';
+        db.query(query, [hashedPassword, decoded.userID], (err) => {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).send({ error: 'Internal Server Error' });
+            }
+
+            res.json({ success: true, message: 'Password has been reset' });
+        });
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        res.status(500).send({ error: 'An error occurred while resetting the password' });
+    }
+});
 
 // Directly specify server port
 const port = 3006; // Replace with your desired port
