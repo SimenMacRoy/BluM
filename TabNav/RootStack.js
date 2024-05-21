@@ -30,6 +30,7 @@ import SurveyScreen from '../Screens/SurveyScreen';
 import RecipeScreen from '../Screens/RecipeScreen';
 import CheckoutScreen from '../Screens/CheckoutScreen';
 import ForgotPasswordScreen from '../Screens/ForgotPasswordScreen';
+import ResetPasswordScreen from '../Screens/ResetPasswordScreen';
 
 
 
@@ -71,6 +72,7 @@ const RootNavigator = () => {
       <RootStack.Screen name="RecipeScreen" component={RecipeScreen} options={{ headerShown:false }}/>
       <RootStack.Screen name="CheckoutScreen" component={CheckoutScreen} options={{ headerShown:false }}/>
       <RootStack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{ headerShown:false }} />
+      <RootStack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} options={{ headerShown:false }}/>
     </RootStack.Navigator>
   );
 };

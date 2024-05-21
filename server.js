@@ -701,11 +701,15 @@ app.post('/api/reset-password', (req, res) => {
         const userID = results[0].userID;
         const token = jwt.sign({ userID }, 'your_jwt_secret', { expiresIn: '1h' });
 
+        const resetUrl = `http://blumapp.com/reset-password/${token}`;
         const mailOptions = {
             from: 'macroysimen@gmail.com', // Change to your email
             to: email,
             subject: 'Password Reset',
-            text: `Click on the following link to reset your password: http://192.168.69.205:3006/reset-password/${token}`,
+            html: `
+                <p>Click on the following link to reset your password:</p>
+                <a href="${resetUrl}">${resetUrl}</a>
+            `,
         };
 
         transporter.sendMail(mailOptions, (error, info) => {
@@ -719,12 +723,17 @@ app.post('/api/reset-password', (req, res) => {
     });
 });
 
+
 app.post('/api/reset-password/:token', async (req, res) => {
     const { token } = req.params;
-    const { password } = req.body;
+    const { password, confirmPassword } = req.body;
 
-    if (!password) {
-        return res.status(400).send({ error: 'Password is required' });
+    if (!password || !confirmPassword) {
+        return res.status(400).send({ error: 'Both password fields are required' });
+    }
+
+    if (password !== confirmPassword) {
+        return res.status(400).send({ error: 'Passwords do not match' });
     }
 
     try {
@@ -745,6 +754,14 @@ app.post('/api/reset-password/:token', async (req, res) => {
         res.status(500).send({ error: 'An error occurred while resetting the password' });
     }
 });
+
+app.get('/reset-password/:token', (req, res) => {
+    const { token } = req.params;
+
+    // Serve a simple HTML form with the token
+    res.redirect(`blumapp://reset-password/${token}`);
+});
+
 
 // Directly specify server port
 const port = 3006; // Replace with your desired port

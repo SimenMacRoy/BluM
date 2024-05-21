@@ -16,7 +16,7 @@ const ForgotPasswordScreen = () => {
 
             const data = await response.json();
             if (data.success) {
-                Alert.alert('Success', 'Password reset instructions have been sent to your email.');
+                Alert.alert('Succès', 'Suivez les instructions envoyées par courriel.');
                 navigation.navigate('LoginScreen');
             } else {
                 Alert.alert('Error', data.error);
