@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange }) => {
@@ -15,7 +15,12 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
     const generateDeliveryTimes = () => {
         let times = [];
         let currentTime = new Date();
-        currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
+        if (currentTime.getHours() >= 22 || currentTime.getHours() < 7) {
+            currentTime.setHours(7, 0, 0, 0);
+            currentTime.setDate(currentTime.getDate() + 1);
+        } else {
+            currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
+        }
         for (let i = 0; i < 8; i++) { // Generate times for the next 4 hours
             let newTime = new Date(currentTime.getTime() + i * 30 * 60000);
             times.push(newTime.toTimeString().substring(0, 5));
@@ -26,6 +31,11 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
 
     const handleDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || initialDate;
+        if (currentDate < new Date()) {
+            Alert.alert('Date Invalide', 'Veuillez choisir une date future.');
+            setShowDatePicker(false);
+            return;
+        }
         setShowDatePicker(false);
         setSelectedDate(currentDate);
         onDateChange(currentDate);
@@ -50,10 +60,10 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
                     </TouchableOpacity>
                 ))}
             </View>
-            <Text style={styles.subHeader}> Choisir la date de livraison </Text>
+            <Text style={styles.subHeader}>Choisir la date de livraison:</Text>
             <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
                 <Text style={styles.dateText}>
-                    {showDatePicker ? 'Choose Date' : `Date selectionneé: ${selectedDate.toLocaleDateString()}`}
+                    {showDatePicker ? 'Choose Date' : `Date sélectionnée: ${selectedDate.toLocaleDateString()}`}
                 </Text>
             </TouchableOpacity>
             {showDatePicker && (
@@ -62,6 +72,7 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
                     mode="date"
                     display="default"
                     onChange={handleDateChange}
+                    minimumDate={new Date()}
                 />
             )}
         </View>
@@ -71,7 +82,7 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
 const styles = StyleSheet.create({
     subHeader: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         textAlign: 'center',
         marginTop: 20,
         marginBottom: 10,
@@ -90,10 +101,12 @@ const styles = StyleSheet.create({
     },
     selectedTime: {
         backgroundColor: '#15B8B8',
+        
     },
     timeText: {
         color: 'white',
         fontSize: 16,
+        fontFamily: 'Ebrima',
     },
     dateButton: {
         padding: 10,
@@ -104,6 +117,7 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: 16,
         textAlign: 'center',
+        fontFamily: 'Ebrima',
     }
 });
 

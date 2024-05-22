@@ -25,6 +25,7 @@ const SearchResults = ({ results, onResultPress }) => {
                     <View style={styles.resultContent}>
                         <Image source={{ uri: result.image }} style={styles.image} />
                         <Text style={styles.title}>{result.title}</Text>
+                        <Text style={styles.price}>${result.price}</Text>
                     </View>
                 </TouchableOpacity>
             ))}
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: '#F5F5F5',
         paddingVertical: 10,
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
     },
     searchItem: {
         flexDirection: 'row',
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#CCCCCC',
-        marginRight: 25,
+        marginRight: 5,
     },
     selectedItem: {
         backgroundColor: '#15FCFC',
@@ -62,6 +63,13 @@ const styles = StyleSheet.create({
     },
     title: {
         flex: 1,
+        fontSize: 16,
+        fontFamily: 'Ebrima',
+    },
+    price: {
+        flex: 0.25,
+        fontSize: 16,
+        fontFamily: 'Ebrima',
     },
 });
 

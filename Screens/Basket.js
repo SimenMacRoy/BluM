@@ -102,10 +102,10 @@ const Basket = () => {
                 </View>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity onPress={() => handleModify(item)} style={styles.modifyButton}>
-                        <Text style={{color: 'white', padding: 5}}>Mod</Text>
+                        <Text style={{color: 'white', padding: 5, fontFamily: 'Ebrima',}}>Mod</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
-                        <Text style={{color: 'white', padding: 5}}>Supp.</Text>
+                        <Text style={{color: 'white', padding: 5, fontFamily: 'Ebrima',}}>Supp.</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -131,7 +131,7 @@ const Basket = () => {
                 </View>
             )}
             
-            <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')} style={styles.button}>
+            <TouchableOpacity onPress={() => navigation.navigate('Recettes')} style={styles.button}>
                 <Text style={styles.buttonText}>Magasiner</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={navigateToCheckout} disabled={basketItems.length === 0} style={[styles.button, { backgroundColor: basketItems.length === 0 ? 'grey' : 'blue' }]}>
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 30,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: '#333',
         padding: 20,
         textAlign: 'center',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
     },
     buttonContainer: {
         flexDirection: 'row',
@@ -202,6 +202,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: 'white',
         fontSize: 16,
+        fontFamily: 'Ebrima',
     },
     emptyBasketContainer: {
         alignItems: 'center',
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     },
     emptyBasketText: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: 'grey',
         textAlign: 'center',
     },
@@ -221,11 +222,11 @@ const styles = StyleSheet.create({
         tintColor: 'grey',
     },
     boldGreyText: {
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: 'grey',
     },
     normalText: {
-        fontWeight: 'normal',
+        fontFamily: 'Ebrima',
     },
 });
 

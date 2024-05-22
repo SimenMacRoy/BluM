@@ -107,13 +107,13 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrima',
     },
     bigTitle: {
         fontSize: 24,
-        fontWeight: 'bold',
         textAlign: 'center',
         marginVertical: 10,
+        fontFamily: 'Ebrimabd',
     },
 });
 

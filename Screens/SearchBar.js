@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         fontSize: 18,
         padding: 10,
+        fontFamily: 'Ebrima',
     },
     focused: {
         backgroundColor: '#D9D9D9', // Lighter background when focused

@@ -125,7 +125,10 @@ const DishList = ({ dishes, onPress }) => (
             <TouchableOpacity key={dish.id} style={styles.card} onPress={() => onPress(dish.id)}>
                 <Image source={{ uri: dish.image }} style={styles.cardImage} />
                 <Text style={styles.cardTitle}>{dish.title}</Text>
-                <Text style={styles.countryFlag}>{dish.countryFlag}</Text>
+                <View style={styles.cardFooter}>
+                    <Text style={styles.priceText}>${dish.price}</Text>
+                    <Text style={styles.countryFlag}>{dish.countryFlag}</Text>
+                </View>
             </TouchableOpacity>
         ))}
     </View>
@@ -145,7 +148,7 @@ const styles = {
     },
     sectionHeaderText: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: 'black',
         alignSelf: 'center',
     },
@@ -174,14 +177,26 @@ const styles = {
     },
     cardTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         paddingVertical: 3,
         alignSelf: 'center',
+    },
+    cardFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 5,
+        paddingBottom: 5,
     },
     countryFlag: {
         fontSize: 20,
         alignSelf: 'flex-end',
         padding: 5
+    },
+    priceText: {
+        fontSize: 16,
+        fontFamily: 'Ebrimabd',
+        color: 'gray'
     },
 };
 

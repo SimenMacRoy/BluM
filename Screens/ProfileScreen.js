@@ -48,7 +48,7 @@ const ProfileScreen = ({ navigation }) => {
             <View style={styles.profileSection}>
                 <Image source={{ uri: user.profile_picture }} style={styles.profileImage} />
                 <Text style={styles.name}>{user.surname} {user.name}</Text>
-                <Button title="Modifier Profile" onPress={handleEditProfile} color="#FF1493" />
+                <Button title="Modifier Profile" onPress={handleEditProfile} color="#FF1493" fontFamily="Ebrima" />
                 <Button title="Publier" onPress={handlePublish} color="#15FCFC"/>
                 <View style={styles.infoRow}>
                     <Text style={styles.infoText}>Blumers: {blumers.length}</Text>
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     },
     name: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: '#333',
     },
     infoRow: {
@@ -112,6 +112,7 @@ const styles = StyleSheet.create({
     infoText: {
         fontSize: 16,
         color: '#333',
+        fontFamily: 'Ebrima',
     },
     details: {
         alignItems: 'flex-start',
@@ -129,6 +130,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333',
         marginVertical: 5,
+        fontFamily: 'Ebrima',
     },
 });
 

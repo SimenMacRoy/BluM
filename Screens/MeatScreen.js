@@ -106,11 +106,11 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
     },
     bigTitle: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         textAlign: 'center',
         marginVertical: 10,
     },

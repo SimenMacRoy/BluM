@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 22,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         marginBottom: 20,
         textAlign: 'center'
     },
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     commandNumber: {
         fontSize: 16,
         color: '#333',
-        fontWeight: 'bold'
+        fontFamily: 'Ebrimabd',
     },
     dateTime: {
         fontSize: 14,

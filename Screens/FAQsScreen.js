@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: 'Ebrimabd',
     color: '#333',
     padding: 20,
     textAlign: 'center'
@@ -67,13 +67,14 @@ const styles = StyleSheet.create({
   },
   question: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'Ebrimabd',
     color: '#444'
   },
   answer: {
     fontSize: 16,
     color: '#666',
-    marginTop: 10
+    marginTop: 10,
+    fontFamily: 'Ebrima',
   }
 });
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { FontAwesome } from '@expo/vector-icons';
 import Header from './Header';
 import SearchBar from './SearchBar';
 import MealTab from './MealTab';
@@ -68,17 +69,21 @@ const RecipeScreenDetail = ({ route }) => {
                 <View style={styles.detailContainer}>
                     <Image source={{ uri: dish.image }} style={styles.foodImage} />
                     <View style={styles.titleContainer}>
-                        <View style={{ flexDirection: 'row'}}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                             <Text style={styles.foodTitle}>{dish.title}</Text>
                             <Text style={styles.countryFlag}>{dish.countryFlag}</Text>
                         </View>
-                        <View style={{ flexDirection: 'row'}}>
-                            <Text style={styles.descriptionTitle}>Desc : </Text>
-                            <Text style={styles.descriptionText}>{dish.description}</Text>
+                        <View style={styles.iconTextContainer}>
+                            
+                            <Text style={styles.iconText}>{dish.description}</Text>
                         </View>
-                        <View style={{ flexDirection: 'row'}}>
-                            <Text style={styles.difficultyTitle}>Diff : </Text>
-                            <Text style={styles.difficultyText}>{dish.difficulty}</Text>
+                        <View style={styles.iconTextContainer}>
+                            <FontAwesome name="star" size={24} color="black" />
+                            <Text style={styles.iconText}>{dish.difficulty}</Text>
+                        </View>
+                        <View style={styles.iconTextContainer}>
+                            <FontAwesome name="info-circle" size={24} color="black" />
+                            <Text style={styles.iconText}>{dish.nutritiveFacts} calories</Text>
                         </View>
                     </View>
                 </View>
@@ -98,14 +103,14 @@ const TabNavigator = ({ dish, itemToUpdate }) => {
             screenOptions={{
                 tabBarActiveTintColor: 'black',
                 tabBarLabelStyle: {
-                    fontWeight: 'bold'
+                    fontFamily: 'Ebrimabd',
                 },
                 tabBarIndicatorStyle: {
                     backgroundColor: '#15FCFC'
                 },
                 tabBarStyle: {
                     backgroundColor: 'white'
-                }
+                },
             }}
         >
             <Tab.Screen name="Recette" component={RecipeTab} initialParams={{ dish }} />
@@ -128,7 +133,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         marginBottom: 10,
-        backgroundColor: '#e1f2f2',
+        backgroundColor: '#15FCFC',
     },
     titleContainer: {
         flex: 1,
@@ -147,43 +152,19 @@ const styles = StyleSheet.create({
     },
     foodTitle: {
         fontSize: 30,
-        fontWeight: 'bold',
-        color: 'white',
+        fontFamily: 'Ebrimabd',
+        color: 'black',
     },
-    descriptionContainer: {
-        paddingHorizontal: 15,
-    },
-    descriptionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    iconTextContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginTop: 5,
-        color: '#333',
-        marginTop: 2,
-        color: 'white',
     },
-    descriptionText: {
+    iconText: {
         fontSize: 16,
-        color: '#666',
-        marginTop: 5,
-        color: 'white',
-    },
-    difficultyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginTop: 5,
-        color: 'white',
-    },
-    difficultyText: {
-        fontSize: 16,
-        color: '#666',
-        marginTop: 5,
-        color: 'white',
-    },
-    separator: {
-        height: 1,
-        backgroundColor: '#ccc',
-        marginVertical: 10
+        color: 'black',
+        marginLeft: 5,
+        fontFamily: 'Ebrima'
     },
 });
 

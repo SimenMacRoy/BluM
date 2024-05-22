@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 5,
-    fontWeight: 'bold',
+    fontFamily: 'Ebrimabd',
     
   }
 });

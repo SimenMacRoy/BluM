@@ -10,34 +10,34 @@ const MoreScreen = () => {
     return(
         <ScrollView>
             <Header />
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10,  }}
                               onPress={() => navigation.navigate('EditProfileScreen')}>
                 <Icon name="person-outline" size={20} />
-                <Text style={{ marginLeft: 10, fontSize: 20 }}>Gérer mon profil</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20, fontFamily: 'Ebrima', }}>Gérer mon profil</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('ReceiptScreen')}>
                 <Icon name="receipt" size={20} />
-                <Text style={{ marginLeft: 10, fontSize: 20 }}>Mes Factures</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20, fontFamily: 'Ebrima', }}>Mes Factures</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('PromotionsScreen')}>
                 <Icon name="local-offer" size={20} />
-                <Text style={{ marginLeft: 10, fontSize: 20 }}>Promotions</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20, fontFamily: 'Ebrima', }}>Promotions</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('FAQsScreen')}>
                 <Icon name="question-answer" size={20} />
-                <Text style={{ marginLeft: 10, fontSize: 20 }}>FAQs</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20, fontFamily: 'Ebrima', }}>FAQs</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}
                               onPress={() => navigation.navigate('SurveyScreen')}>
                 <Icon name="poll" size={20} />
-                <Text style={{ marginLeft: 10, fontSize: 20 }}>Avis/Sondages</Text>
+                <Text style={{ marginLeft: 10, fontSize: 20, fontFamily: 'Ebrima', }}>Avis/Sondages</Text>
             </TouchableOpacity>
         </ScrollView>
     )

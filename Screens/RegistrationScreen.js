@@ -143,17 +143,19 @@ const styles = StyleSheet.create({
     },
     welcomeText: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
     },
     label: {
         marginTop: 10,
         fontSize: 16,
+        fontFamily: 'Ebrima',
     },
     input: {
         marginVertical: 10,
         padding: 10,
         borderWidth: 1,
         borderRadius: 5,
+        fontFamily: 'Ebrima',
     },
     imagePickerButton: {
         marginVertical: 10,
@@ -165,6 +167,7 @@ const styles = StyleSheet.create({
         color: 'black',
         textAlign: 'center',
         fontSize: 16,
+        fontFamily: 'Ebrima',
     },
     profileImage: {
         width: 100,
@@ -176,6 +179,7 @@ const styles = StyleSheet.create({
     registerButtonText: {
         fontSize: 18,
         color: 'black',
+        fontFamily: 'Ebrima',
     },
     registerButton: {
         backgroundColor: '#15FCFC',

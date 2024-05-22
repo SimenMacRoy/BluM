@@ -147,6 +147,7 @@ const IngredientsList = ({ ingredients, onPress }) => (
             <TouchableOpacity key={ingredient.id} style={styles.card} onPress={() => onPress(ingredient)}>
                 <Image source={{ uri: ingredient.image }} style={styles.cardImage} />
                 <Text style={styles.cardTitle}>{ingredient.title}</Text>
+                <Text style={styles.cardPrice}>${ingredient.price}</Text>
             </TouchableOpacity>
         ))}
     </View>
@@ -164,7 +165,7 @@ const styles = {
     },
     sectionHeaderText: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: 'black',
         alignSelf: 'center',
     },
@@ -193,9 +194,16 @@ const styles = {
     },
     cardTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         paddingVertical: 3,
         alignSelf: 'center',
+    },
+    cardPrice: {
+        marginTop: 5,
+        fontSize: 14,
+        color: 'gray',
+        paddingLeft: 10,
+        fontFamily: 'Ebrimabd',
     },
 };
 

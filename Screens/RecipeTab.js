@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, Linking, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 
 const RecipeTab = ({ route }) => {
@@ -9,7 +9,6 @@ const RecipeTab = ({ route }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Fetch ingredients from backend
         const fetchIngredients = async () => {
             try {
                 const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`); // Update with actual URL
@@ -50,7 +49,7 @@ const RecipeTab = ({ route }) => {
                         <FontAwesome name="users" size={24} color="gold" />
                     </View>
                 )}
-                {dish.portions && <Text style={styles.portion}>- {dish.portions} personnes</Text>}
+                {dish.portions && <Text style={styles.portion}>{dish.portions} personnes</Text>}
                 <View style={styles.rowContainer}>
                     <Text style={styles.label}>Ingrédients</Text>
                     <FontAwesome name="shopping-basket" size={24} color="gold" />
@@ -59,14 +58,12 @@ const RecipeTab = ({ route }) => {
                     <View key={index} style={styles.ingredientRow}>
                         <Image source={{ uri: ingredient.image }} style={styles.ingredientImage} />
                         <View>
-
-                        <Text style={styles.portion}>
-                            - {ingredient.title}
-                        </Text>
-                        <Text style={styles.portion}>
-                            ({ingredient.quantity})
-                        </Text>
-
+                            <Text style={styles.portion}>
+                                {ingredient.title}
+                            </Text>
+                            <Text style={styles.portion}>
+                                ({ingredient.quantity})
+                            </Text>
                         </View>
                     </View>
                 ))}
@@ -74,7 +71,16 @@ const RecipeTab = ({ route }) => {
                     <Text style={styles.label}>Recommandations</Text>
                     <FontAwesome name="pencil" size={24} color="gold" />
                 </View>
-                {dish.recommendations && <Text style={styles.portion}>- {dish.recommendations}</Text>}
+                {dish.recommendations && <Text style={styles.portion}>{dish.recommendations}</Text>}
+                <View style={styles.rowContainer}>
+                    <Text style={styles.label}>Vidéo</Text>
+                    <FontAwesome name="video-camera" size={24} color="gold" />
+                </View>
+                {dish.video_url && (
+                    <TouchableOpacity onPress={() => Linking.openURL(dish.video_url)}>
+                        <Text style={[styles.portion, styles.videoUrl]}>{dish.video_url}</Text>
+                    </TouchableOpacity>
+                )}
                 <View style={styles.rowContainer}>
                     <Text style={styles.preparation}>Préparation</Text>
                     <FontAwesome name="clock-o" size={24} color="gold" />
@@ -88,28 +94,34 @@ const RecipeTab = ({ route }) => {
 const styles = StyleSheet.create({
     rowContainer: {
         flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 10,
         backgroundColor: "#15FCFC",
-        width: 250,
-        height: 50,
         borderRadius: 20,
         padding: 10,
+        alignSelf: 'center',
     },
     label: {
         marginRight: 10,
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd'
     },
     portion: {
         marginLeft: 10,
         fontSize: 20,
         marginBottom: 10,
+        textAlign: 'center',
+        fontFamily: 'Ebrima'
+    },
+    videoUrl: {
+        color: 'blue',
+        textDecorationLine: 'underline',
     },
     preparation: {
         marginRight: 10,
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
     },
     tabContent: {
         backgroundColor: 'white',
@@ -118,7 +130,7 @@ const styles = StyleSheet.create({
     },
     ingredientRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        justifyContent: 'center',
         marginBottom: 10,
     },
     ingredientImage: {

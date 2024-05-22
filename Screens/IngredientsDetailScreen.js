@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { FontAwesome } from '@expo/vector-icons';
 import Header from './Header';
 import BasketContext from './BasketContext';
 import DateTimeSelector from '../utils/DateTimeSelector';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { useNavigation } from '@react-navigation/native';
 
 const IngredientsDetailScreen = ({ route }) => {
     const { ingredientId } = route.params;
@@ -15,34 +15,34 @@ const IngredientsDetailScreen = ({ route }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [existingItem, setExistingItem] = useState(null);
-    const navigation = useNavigation(); // Initialize navigation
+    const navigation = useNavigation();
     const [deliveryDate, setDeliveryDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [deliveryTime, setDeliveryTime] = useState('');
     const [deliveryTimes, setDeliveryTimes] = useState([]);
+    const [totalPrice, setTotalPrice] = useState(0);
 
     function formatPackage(quantity, packageDescription) {
-        // Sépare le package en "prefix" et "unit" (ex. '1 sac de', '3kg')
         const parts = packageDescription.split(' ');
         if (quantity > 1) {
             if (parts[0] === 'Sac') {
-                // Pluralize and adjust the prefix based on French grammar rules
-                return `${quantity} sacs de ${parts[2]} ${parts[3]}`;
+                if (parts[3]){
+                    return `${quantity} sacs de ${parts[2]} ${parts[3]}`;
+                }
+                else {
+                    return `${quantity} sacs de ${parts[2]}`;
+                }
             } else if (parts[0] === 'Unité') {
-                // Simple pluralization for "unité"
                 return `${quantity} unités`;
             } else {
-                // Default pluralization logic
                 return `${quantity} ${packageDescription}s`;
             }
         } else {
-            // No change needed for singular
             return `${quantity} ${packageDescription}`;
         }
-    
     }
+
     useEffect(() => {
-        // Fetch ingredient from backend
         const fetchIngredient = async () => {
             try {
                 const response = await fetch(`http://192.168.69.205:3006/api/ingredients/${ingredientId}`);
@@ -53,15 +53,16 @@ const IngredientsDetailScreen = ({ route }) => {
                 setIngredient(data);
                 setLoading(false);
 
-                // Set initial quantity from basket
                 const foundItem = basketItems.find(item => item.id === ingredientId);
                 if (foundItem) {
                     setExistingItem(foundItem);
                     setQuantity(foundItem.quantity);
                     setDeliveryDate(new Date(foundItem.deliveryDate));
                     setDeliveryTime(foundItem.deliveryTime || '');
+                    setTotalPrice(foundItem.totalPrice || 0);
                 } else {
                     setExistingItem(null);
+                    calculateTotalPrice(data.price, quantity);
                 }
                 generateDeliveryTimes();
             } catch (err) {
@@ -77,18 +78,28 @@ const IngredientsDetailScreen = ({ route }) => {
     const generateDeliveryTimes = () => {
         let times = [];
         let currentTime = new Date();
-        currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
-        for (let i = 0; i < 8; i++) { // 6 times within 3 hours
-            let newTime = new Date(currentTime.getTime() + i * 30 * 60000);
-            times.push(newTime.toTimeString().substring(0, 5));
+        const currentHour = currentTime.getHours();
+        const startTime = (currentHour >= 22 || currentHour < 7) ? new Date(currentTime.setHours(7, 0, 0, 0)) : new Date(currentTime);
+
+        startTime.setMinutes(Math.ceil(startTime.getMinutes() / 15) * 15);
+
+        for (let i = 0; i < 10; i++) {
+            const nextTime = new Date(startTime);
+            nextTime.setMinutes(startTime.getMinutes() + i * 15);
+            times.push(nextTime.toTimeString().substring(0, 5));
         }
+
         setDeliveryTimes(times);
         setDeliveryTime(times[0]);
     };
 
+    const calculateTotalPrice = (price, qty) => {
+        setTotalPrice((price * qty).toFixed(2));
+    };
+
     const handleAddToBasket = () => {
         if (ingredient && quantity > 0) {
-            let totalPrice = parseFloat(ingredient.price) * parseInt(quantity);
+            const totalPrice = parseFloat(ingredient.price) * parseInt(quantity);
             addToBasket({
                 ...ingredient,
                 quantity,
@@ -96,14 +107,19 @@ const IngredientsDetailScreen = ({ route }) => {
                 deliveryDate: deliveryDate.toISOString(),
                 deliveryTime
             });
-            alert(existingItem ? `L'item ${ingredient.title} a été modifié par ${quantity} quantités.` : `Ajout de ${quantity} quantités de ${ingredient.title} à votre panier.`);
+            Alert.alert(existingItem ? `L'item ${ingredient.title} a été modifié par ${quantity} quantités.` : `Ajout de ${quantity} quantités de ${ingredient.title} à votre panier.`);
         } else {
-            alert('Please select a quantity before adding to basket.');
+            Alert.alert('Please select a quantity before adding to basket.');
         }
     };
 
     const onDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || deliveryDate;
+        if (currentDate < new Date()) {
+            Alert.alert('Date Invalide', 'Veuillez choisir une date future.');
+            setShowDatePicker(false);
+            return;
+        }
         setShowDatePicker(false);
         setDeliveryDate(currentDate);
     };
@@ -142,21 +158,28 @@ const IngredientsDetailScreen = ({ route }) => {
                     <Text style={styles.description}>{ingredient.description}</Text>
 
                     <View style={styles.quantityControl}>
-                        <TouchableOpacity onPress={() => setQuantity(Math.max(1, quantity - 1))}>
+                        <TouchableOpacity onPress={() => {
+                            const newQuantity = Math.max(1, quantity - 1);
+                            setQuantity(newQuantity);
+                            calculateTotalPrice(ingredient.price, newQuantity);
+                        }}>
                             <FontAwesome name="minus" size={24} color="black" />
                         </TouchableOpacity>
                         <Text style={styles.quantity}>{quantity}</Text>
-                        <TouchableOpacity onPress={() => setQuantity(quantity + 1)}>
+                        <TouchableOpacity onPress={() => {
+                            const newQuantity = quantity + 1;
+                            setQuantity(newQuantity);
+                            calculateTotalPrice(ingredient.price, newQuantity);
+                        }}>
                             <FontAwesome name="plus" size={24} color="black" />
                         </TouchableOpacity>
                     </View>
 
                     <View style={styles.packageContainer}>
                         <Text style={styles.packageInfo}>
-                            {formatPackage(quantity, ingredient.package)} = ${(ingredient.price * quantity).toFixed(2)}$
+                            {formatPackage(quantity, ingredient.package)} = ${(ingredient.price * quantity).toFixed(2)}
                         </Text>
                     </View>
-
 
                     <DateTimeSelector
                         initialDate={deliveryDate}
@@ -167,7 +190,7 @@ const IngredientsDetailScreen = ({ route }) => {
                     />
 
                     <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
-                        <Text style={styles.addToBasketText}>{existingItem ? 'Modifier le panier' : 'Ajouter au panier'}</Text>
+                        <Text style={styles.addToBasketText}>{existingItem ? `Modifier le panier ($${totalPrice})` : `Ajouter au panier ($${totalPrice})`}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -189,6 +212,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginHorizontal: 20,
         marginTop: 10,
+        fontFamily: 'Ebrima',
     },
     quantityControl: {
         flexDirection: 'row',
@@ -198,6 +222,7 @@ const styles = StyleSheet.create({
     quantity: {
         fontSize: 20,
         marginHorizontal: 10,
+        fontFamily: 'Ebrima',
     },
     addToBasketButton: {
         backgroundColor: 'black',
@@ -208,6 +233,7 @@ const styles = StyleSheet.create({
     addToBasketText: {
         color: 'white',
         fontSize: 18,
+        fontFamily: 'Ebrima',
     },
     foodContainer: {
         backgroundColor: '#15FCFC',
@@ -234,6 +260,7 @@ const styles = StyleSheet.create({
     packageInfo: {
         fontSize: 14,
         color: '#666',
+        fontFamily: 'Ebrima',
     },
     dateButton: {
         padding: 10,
@@ -244,10 +271,11 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: 16,
         textAlign: 'center',
+        fontFamily: 'Ebrima',
     },
     subHeader: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         textAlign: 'center',
         marginTop: 20,
         marginBottom: 10,
@@ -279,6 +307,10 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: 'white',
         marginBottom: 15,
+    },
+    foodTitle: {
+        fontFamily: 'Ebrimabd',
+        fontSize: 22,
     }
 });
 

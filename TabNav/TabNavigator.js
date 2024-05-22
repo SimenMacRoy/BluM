@@ -46,7 +46,6 @@ const TabNavigator = () => {
         keyboardHidesTabBar: true,
       })}
     >
-      <Tab.Screen name="Accueil" component={HomeNav} options={{headerShown: false}}/>
       <Tab.Screen name="Recettes" component={RecipeNav} options={{headerShown: false}}/>
       <Tab.Screen name="Ingredients" component={IngredientNav} options={{headerShown: false}}/>
       <Tab.Screen name="Commander" component={Basket} options={{headerShown: false}}/>

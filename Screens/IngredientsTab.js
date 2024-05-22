@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import BasketContext from './BasketContext';
 import DateTimeSelector from '../utils/DateTimeSelector';
@@ -13,6 +13,7 @@ const IngredientsTab = ({ route }) => {
     const [deliveryDate, setDeliveryDate] = useState(new Date());
     const [deliveryTime, setDeliveryTime] = useState('');
     const [deliveryTimes, setDeliveryTimes] = useState([]);
+    const [totalPrice, setTotalPrice] = useState(0);
 
     const { addToBasket } = useContext(BasketContext);
 
@@ -31,7 +32,8 @@ const IngredientsTab = ({ route }) => {
                 
                 setIngredientsList(initializedIngredients);
                 setLoading(false);
-                generateDeliveryTimes(); // This could also be moved to DateTimeSelector if it's not used elsewhere
+                generateDeliveryTimes();
+                calculateTotalPrice(initializedIngredients); // Calculate initial total price
             } catch (err) {
                 console.error('Failed to fetch ingredients:', err);
                 setError(err.message);
@@ -45,13 +47,35 @@ const IngredientsTab = ({ route }) => {
     const generateDeliveryTimes = () => {
         let times = [];
         let currentTime = new Date();
-        currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
+        if (currentTime.getHours() >= 22 || currentTime.getHours() < 7) {
+            currentTime.setHours(7, 0, 0, 0);
+            currentTime.setDate(currentTime.getDate() + 1);
+        } else {
+            currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
+        }
         for (let i = 0; i < 8; i++) {
             let newTime = new Date(currentTime.getTime() + i * 30 * 60000);
             times.push(newTime.toTimeString().substring(0, 5));
         }
         setDeliveryTimes(times);
         setDeliveryTime(times[0]);
+    };
+
+    const calculateTotalPrice = (ingredients) => {
+        let price = 0;
+        ingredients.forEach(ingredient => {
+            price += ingredient.price * ingredient.quantity;
+        });
+        setTotalPrice(price);
+    };
+
+    const updateIngredientQuantity = (index, change) => {
+        setIngredientsList(prev => {
+            const newList = [...prev];
+            newList[index].quantity = Math.max(1, newList[index].quantity + change);
+            calculateTotalPrice(newList); // Recalculate total price on quantity change
+            return newList;
+        });
     };
 
     const handleAddToBasket = () => {
@@ -63,7 +87,7 @@ const IngredientsTab = ({ route }) => {
                 deliveryTime
             });
         });
-        alert('Ingredients added to basket with delivery details!');
+        alert(`Ingredients added to basket with delivery details! Total price: $${totalPrice.toFixed(2)}`);
     };
 
     if (loading) {
@@ -84,19 +108,11 @@ const IngredientsTab = ({ route }) => {
                                 <Image source={{ uri: ingredient.image }} style={styles.image} />
                                 <Text style={styles.ingredientName}>{ingredient.title}</Text>
                                 <View style={styles.quantityContainer}>
-                                    <TouchableOpacity onPress={() => setIngredientsList(prev => {
-                                        const newList = [...prev];
-                                        newList[index].quantity = Math.max(1, newList[index].quantity - 1);
-                                        return newList;
-                                    })}>
+                                    <TouchableOpacity onPress={() => updateIngredientQuantity(index, -1)}>
                                         <FontAwesome name="minus" size={24} color="black" />
                                     </TouchableOpacity>
                                     <Text style={styles.quantity}>{ingredient.quantity}</Text>
-                                    <TouchableOpacity onPress={() => setIngredientsList(prev => {
-                                        const newList = [...prev];
-                                        newList[index].quantity += 1;
-                                        return newList;
-                                    })}>
+                                    <TouchableOpacity onPress={() => updateIngredientQuantity(index, 1)}>
                                         <FontAwesome name="plus" size={24} color="black" />
                                     </TouchableOpacity>
                                 </View>
@@ -118,7 +134,7 @@ const IngredientsTab = ({ route }) => {
                 deliveryTimes={deliveryTimes}
             />
             <TouchableOpacity style={styles.checkoutButton} onPress={handleAddToBasket}>
-                <Text style={styles.checkoutText}>Ajouter au panier</Text>
+                <Text style={styles.checkoutText}>Ajouter au panier (${totalPrice.toFixed(2)})</Text>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -136,19 +152,20 @@ const styles = StyleSheet.create({
     ingredientItem: {
         marginBottom: 10,
     },
-    row : {
+    row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
     image: {
-        width: 50, // Adjust the size as needed
+        width: 50,
         height: 50,
         marginRight: 10,
     },
     ingredientName: {
         fontSize: 16,
         flex: 0.5,
+        fontFamily: 'Ebrima',
     },
     quantityContainer: {
         flexDirection: 'row',
@@ -157,6 +174,7 @@ const styles = StyleSheet.create({
     quantity: {
         marginHorizontal: 10,
         fontSize: 16,
+        fontFamily: 'Ebrima',
     },
     checkoutButton: {
         backgroundColor: 'black',
@@ -168,6 +186,7 @@ const styles = StyleSheet.create({
     checkoutText: {
         color: 'white',
         fontSize: 18,
+        fontFamily: 'Ebrima',
     },
     descriptionContainer: {
         backgroundColor: '#e6e6e6',
@@ -177,6 +196,7 @@ const styles = StyleSheet.create({
     description: {
         fontSize: 14,
         color: '#666',
+        fontFamily: 'Ebrima',
     },
 });
 

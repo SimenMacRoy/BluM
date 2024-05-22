@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         marginBottom: 5,
+        fontFamily: 'Ebrima',
     },
     input: {
         marginVertical: 10,

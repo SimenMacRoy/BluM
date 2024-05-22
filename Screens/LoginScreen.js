@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
         marginLeft: 30,
     },
     welcomeText: {
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         fontSize: 24,
         color: 'black',
         alignContent: 'center'
@@ -151,10 +151,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 10,
         textDecorationLine: 'underline',
+        fontFamily: 'Ebrima',
     },
     textField: { 
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: 'black',
         paddingLeft: 10,
         paddingTop: 10,
@@ -170,6 +171,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginLeft: 10,
         padding: 10,
+        fontFamily: 'Ebrima',
     },
     passwordContainer: {
         flexDirection: 'row',
@@ -187,6 +189,7 @@ const styles = StyleSheet.create({
         height: 50,
         fontSize: 16,
         padding: 10,
+        fontFamily: 'Ebrima',
     },
     eyeIcon: {
         marginLeft: 10,
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
         height: 60,
         marginLeft: 77.5, 
         marginRight: 77.5,
-        marginTop: 30
+        marginTop: 30,
 
     },
     buttonText: {
@@ -205,11 +208,13 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         borderRadius: 30,
         color: 'white',
+        fontFamily: 'Ebrima',
     },
     info: {
         paddingTop: 10,
         fontSize: 25,
         textAlign: 'center',
+        fontFamily: 'Ebrima',
     },
     buttonCreate: {
         width: 155,

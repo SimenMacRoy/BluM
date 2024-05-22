@@ -1,31 +1,27 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import BasketContext from './BasketContext';
 
 const MealTab = ({ route }) => {
-    const { dish, existingItem } = route.params; // Extract dish and existingItem from route.params
+    const { dish, existingItem } = route.params;
     const { addToBasket } = useContext(BasketContext);
-    const [quantity, setQuantity] = useState(existingItem ? existingItem.quantity.toString() : ''); // Set initial quantity from existingItem if available
+    const [quantity, setQuantity] = useState(existingItem ? existingItem.quantity.toString() : '');
     const [deliveryTime, setDeliveryTime] = useState(existingItem ? existingItem.deliveryTime : '');
     const [deliveryDate, setDeliveryDate] = useState(existingItem ? new Date(existingItem.deliveryDate) : new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [specifications, setSpecifications] = useState(existingItem ? existingItem.specifications : []); // Set initial specifications from existingItem if available
+    const [specifications, setSpecifications] = useState(existingItem ? existingItem.specifications : []);
     const [deliveryTimes, setDeliveryTimes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!dish) return; // If no dish details provided, return
-
-        // Generate delivery times based on the provided dish's deliveryDate
-        generateDeliveryTimes(new Date(dish.deliveryDate));
+        if (!dish) return;
+        generateDeliveryTimes(new Date());
     }, []);
 
     useEffect(() => {
-        if (!existingItem) return; // If no existingItem provided, return
-
-        // Set initial state based on existingItem
+        if (!existingItem) return;
         setQuantity(existingItem.quantity.toString());
         setDeliveryTime(existingItem.deliveryTime);
         setDeliveryDate(new Date(existingItem.deliveryDate));
@@ -33,11 +29,10 @@ const MealTab = ({ route }) => {
     }, [existingItem]);
 
     useEffect(() => {
-        // Only fetch new specifications if there is no existing item or the existing item has no specifications.
         if (!existingItem || !existingItem.specifications || existingItem.specifications.length === 0) {
             fetchIngredients();
         } else {
-            setSpecifications(existingItem.specifications); // Use existing specifications if available
+            setSpecifications(existingItem.specifications);
             setLoading(false);
         }
     }, [dish.id, existingItem]);
@@ -66,14 +61,14 @@ const MealTab = ({ route }) => {
 
     const generateDeliveryTimes = (chosenTime) => {
         const proposedTimes = [];
-        const currentMinutes = chosenTime.getMinutes();
-        const roundedMinutes = Math.ceil(currentMinutes / 5) * 5; // Round up to the nearest multiple of 5
-        const roundedTime = new Date(chosenTime);
-        roundedTime.setMinutes(roundedMinutes);
+        const currentHour = chosenTime.getHours();
+        const startTime = (currentHour >= 22 || currentHour < 7) ? new Date(chosenTime.setHours(7, 0, 0, 0)) : new Date(chosenTime);
+        
+        startTime.setMinutes(Math.ceil(startTime.getMinutes() / 15) * 15);
 
-        for (let i = 3; i < 13; i++) {
-            const nextTime = new Date(roundedTime);
-            nextTime.setMinutes(nextTime.getMinutes() + i * 15);
+        for (let i = 0; i < 10; i++) {
+            const nextTime = new Date(startTime);
+            nextTime.setMinutes(startTime.getMinutes() + i * 15);
             proposedTimes.push(nextTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         }
 
@@ -82,7 +77,12 @@ const MealTab = ({ route }) => {
 
     const handleAddToBasket = () => {
         if (!quantity || quantity <= 0) {
-            alert('Veuillez entrez une quantité valide !');
+            Alert.alert('Quantité Invalide', 'Veuillez entrer une quantité valide !');
+            return;
+        }
+
+        if (!deliveryTime && deliveryTimes.length > 0) {
+            Alert.alert('Heure Invalide', 'Veuillez entrer une heure valide !');
             return;
         }
     
@@ -103,11 +103,16 @@ const MealTab = ({ route }) => {
             type: 'Plat',
             totalPrice: totalPrice.toFixed(2)
         });
-        alert(existingItem ? 'Panier modifié' : 'Plat ajouté au panier !');
+        Alert.alert(existingItem ? 'Panier modifié' : 'Plat ajouté au panier !');
     };
     
     const onDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || deliveryDate;
+        if (currentDate < new Date()) {
+            Alert.alert('Date Invalide', 'Veuillez choisir une date future.');
+            setShowDatePicker(false);
+            return;
+        }
         setShowDatePicker(false);
         setDeliveryDate(currentDate);
     };
@@ -141,6 +146,14 @@ const MealTab = ({ route }) => {
     if (error) {
         return <Text>Error: {error}</Text>;
     }
+
+    let totalPrice = parseFloat(dish.price) * parseInt(quantity || 0);
+    let activeSpecifications = specifications.filter(spec => spec.quantity > 0);
+
+    activeSpecifications.forEach(spec => {
+        const ingredientPrice = parseFloat(spec.price);
+        totalPrice += (ingredientPrice / 10) * spec.quantity;
+    });
 
     return (
         <ScrollView style={styles.container}>
@@ -178,6 +191,7 @@ const MealTab = ({ route }) => {
                         mode="date"
                         display="default"
                         onChange={onDateChange}
+                        minimumDate={new Date()} // Prevent choosing a past date
                     />
                 )}
 
@@ -195,7 +209,7 @@ const MealTab = ({ route }) => {
                                     <Text style={styles.circleButtonText}>+</Text>
                                 </TouchableOpacity>
                             </View>
-                            <View style={{ marginLeft: 60}}>
+                            <View style={{ marginLeft: 60 }}>
                                 <Text style={styles.price}>${(parseFloat(ingredient.price) / 10).toFixed(2)}</Text>
                             </View>
                         </View>
@@ -203,7 +217,7 @@ const MealTab = ({ route }) => {
                 </View>
 
                 <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
-                    <Text style={styles.buttonText}>{existingItem ? 'Mettre à jour' : 'Ajouter au panier'}</Text>
+                    <Text style={styles.buttonText}>{existingItem ? `Mettre à jour ($${totalPrice.toFixed(2)})` : `Ajouter au panier ($${totalPrice.toFixed(2)})`}</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -223,6 +237,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: 'white',
         marginBottom: 15,
+        fontFamily: 'Ebrima',
     },
     timeContainer: {
         flexDirection: 'row',
@@ -245,6 +260,7 @@ const styles = StyleSheet.create({
     timeText: {
         fontSize: 16,
         color: 'white',
+        fontFamily: 'Ebrima',
     },
     dateButton: {
         padding: 10,
@@ -255,6 +271,7 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: 16,
         textAlign: 'center',
+        fontFamily: 'Ebrima',
     },
     addToBasketButton: {
         backgroundColor: '#15FCFC',
@@ -267,10 +284,11 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 18,
         color: 'white',
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
     },
     subHeader: {
         fontSize: 20,
+        fontFamily: 'Ebrimabd',
     },
     specificationsContainer: {
         maxHeight: 200,
@@ -286,6 +304,7 @@ const styles = StyleSheet.create({
     ingredientName: {
         fontSize: 16,
         flex: 1,
+        fontFamily: 'Ebrima',
     },
     quantityContainer: {
         flexDirection: 'row',
@@ -294,7 +313,7 @@ const styles = StyleSheet.create({
     quantity: {
         marginHorizontal: 5,
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
     },
     circleButton: {
         width: 24,
@@ -307,12 +326,13 @@ const styles = StyleSheet.create({
     circleButtonText: {
         fontSize: 16,
         color: 'white',
+        fontFamily: 'Ebrima',
     },
     price: {
         fontSize: 14,
         color: 'gray',
         marginTop: 5,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
     },
 });
 

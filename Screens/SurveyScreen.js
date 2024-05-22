@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         color: '#333',
         marginBottom: 20,
         textAlign: 'center'
@@ -132,14 +132,16 @@ const styles = StyleSheet.create({
     question: {
         fontSize: 18,
         color: '#333',
-        marginBottom: 10
+        marginBottom: 10,
+        fontFamily: 'Ebrima',
     },
     input: {
         borderWidth: 1,
         borderColor: '#ccc',
         padding: 10,
         minHeight: 100,
-        textAlignVertical: 'top'
+        textAlignVertical: 'top',
+        fontFamily: 'Ebrima',
     },
     option: {
         padding: 10,
@@ -150,18 +152,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#15FCFC'
     },
     text: {
-        fontSize: 16
+        fontSize: 16,
+        fontFamily: 'Ebrima',
     },
     button: {
         backgroundColor: '#0066cc',
         padding: 15,
         borderRadius: 5,
-        alignItems: 'center'
+        alignItems: 'center',
+        marginBottom: 60
     },
     buttonText: {
         color: 'white',
         fontSize: 16,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        fontFamily: 'Ebrima',
     }
 });
 

@@ -3,13 +3,19 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList, Alert } 
 import { useStripe } from '@stripe/stripe-react-native';
 import BasketContext from './BasketContext';
 import Header from './Header';
+import { FontAwesome } from '@expo/vector-icons';
 
 const CheckoutScreen = () => {
     const { basketItems, clearBasket } = useContext(BasketContext);
     const { confirmPayment } = useStripe();
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
-    const [postalAddress, setPostalAddress] = useState('');
+    const [line1, setLine1] = useState('');
+    const [line2, setLine2] = useState('');
+    const [addressName, setAddressName] = useState('');
+    const [city, setCity] = useState('');
+    const [province, setProvince] = useState('');
+    const [postalCode, setPostalCode] = useState('');
     const [email, setEmail] = useState('');
     const [cardNumber, setCardNumber] = useState('');
     const [expirationDate, setExpirationDate] = useState('');
@@ -68,7 +74,7 @@ const CheckoutScreen = () => {
                     name: `${name} ${surname}`,
                     email: email,
                     address: {
-                        line1: postalAddress,
+                        line1: `${line1}, ${line2}, ${addressName}, ${city}, ${province}, ${postalCode}`,
                     },
                 },
             });
@@ -82,7 +88,7 @@ const CheckoutScreen = () => {
                     body: JSON.stringify({
                         name,
                         surname,
-                        postalAddress,
+                        postalAddress: `${line1}, ${line2}, ${addressName}, ${city}, ${province}, ${postalCode}`,
                         email,
                         orderDetails: JSON.stringify(basketItems),
                     }),
@@ -106,23 +112,34 @@ const CheckoutScreen = () => {
 
     const data = [
         { key: 'header', render: () => <Header /> },
-        { key: 'infoHeader', render: () => <Text style={styles.infoHeader}>Enter your information</Text> },
+        { key: 'infoHeader', render: () => <Text style={styles.infoHeader}>Entrez vos informations</Text> },
         {
             key: 'userInfoSection', render: () => (
                 <View style={styles.userInfoSection}>
-                    <Text style={styles.label}>Name</Text>
-                    <TextInput style={styles.input} onChangeText={setName} value={name} placeholder="Name" />
-                    <Text style={styles.label}>Surname</Text>
-                    <TextInput style={styles.input} onChangeText={setSurname} value={surname} placeholder="Surname" />
-                    <Text style={styles.label}>Postal Address</Text>
+                    <Text style={styles.label}>Nom</Text>
+                    <TextInput style={styles.input} onChangeText={setName} value={name} placeholder="Nom" />
+                    <Text style={styles.label}>Prénom</Text>
+                    <TextInput style={styles.input} onChangeText={setSurname} value={surname} placeholder="Prénom" />
+                    <Text style={styles.label}>Adresse Postale</Text>
+                    <Text style={styles.label}>Ligne 1</Text>
+                    <TextInput style={styles.input} onChangeText={setLine1} value={line1} placeholder="Ligne 1" />
+                    <Text style={styles.label}>Ligne 2(facultatif)</Text>
+                    <TextInput style={styles.input} onChangeText={setLine2} value={line2} placeholder="Ligne 2" />
+                    <Text style={styles.label}>Nom de l'adresse</Text>
+                    <TextInput style={styles.input} onChangeText={setAddressName} value={addressName} placeholder="Nom de l'adresse" />
+                    <Text style={styles.label}>Ville</Text>
+                    <TextInput style={styles.input} onChangeText={setCity} value={city} placeholder="Ville" />
+                    <Text style={styles.label}>Province</Text>
+                    <TextInput style={styles.input} onChangeText={setProvince} value={province} placeholder="Province" />
+                    <Text style={styles.label}>Code postal</Text>
                     <TextInput
                         style={styles.input}
                         onChangeText={(text) => {
-                            setPostalAddress(text);
+                            setPostalCode(text);
                             fetchAddressSuggestions(text);
                         }}
-                        value={postalAddress}
-                        placeholder="Postal Address"
+                        value={postalCode}
+                        placeholder="Code postal"
                     />
                     {suggestions.length > 0 && (
                         <FlatList
@@ -134,44 +151,48 @@ const CheckoutScreen = () => {
                     )}
                     <Text style={styles.label}>Email</Text>
                     <TextInput style={styles.input} onChangeText={setEmail} value={email} placeholder="Email" keyboardType="email-address" />
-                    <Text style={styles.label}>Credit Card Number</Text>
+                    <Text style={styles.label}>Numéro de carte</Text>
                     <TextInput
                         style={styles.input}
                         onChangeText={handleCardNumberChange}
                         value={cardNumber}
-                        placeholder="Credit Card Number"
+                        placeholder="Numéro de carte"
                         keyboardType="numeric"
                         maxLength={19}
                     />
-                    <Text style={styles.label}>Expiration Date (MM/YY)</Text>
+                    <Text style={styles.label}>Date d'expiration (MM/AA)</Text>
                     <TextInput
                         style={styles.input}
                         onChangeText={handleExpirationDateChange}
                         value={expirationDate}
-                        placeholder="Expiration Date (MM/YY)"
+                        placeholder="Date d'expiration (MM/AA)"
                         keyboardType="numeric"
                         maxLength={5}
                     />
                     <Text style={styles.label}>CVV</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={setCvv}
-                        value={cvv}
-                        placeholder="CVV"
-                        keyboardType="numeric"
-                        maxLength={3}
-                        secureTextEntry
-                    />
+                    <View style={styles.cvvContainer}>
+                        <TextInput
+                            style={styles.inputCvv}
+                            onChangeText={setCvv}
+                            value={cvv}
+                            placeholder="CVV"
+                            keyboardType="numeric"
+                            maxLength={3}
+                            secureTextEntry
+                        />
+                        <FontAwesome name="lock" size={24} color="black" style={styles.cvvIcon} />
+                    </View>
                 </View>
             )
         },
         {
             key: 'orderSummarySection', render: () => (
                 <View style={styles.orderSummarySection}>
+                    <Text style={styles.sommaireText}>Sommaire</Text>
                     <Text style={styles.summaryText}>Sub-total: ${subtotal.toFixed(2)}</Text>
-                    <Text style={styles.summaryText}>Delivery Fee: ${deliveryFee.toFixed(2)}</Text>
-                    <Text style={styles.summaryText}>Tax (TPS): ${taxTPS.toFixed(2)}</Text>
-                    <Text style={styles.summaryText}>Tax (TVQ): ${taxTVQ.toFixed(2)}</Text>
+                    <Text style={styles.summaryText}>Frais de livraison: ${deliveryFee.toFixed(2)}</Text>
+                    <Text style={styles.summaryText}>Taxe (TPS): ${taxTPS.toFixed(2)}</Text>
+                    <Text style={styles.summaryText}>Taxe (TVQ): ${taxTVQ.toFixed(2)}</Text>
                     <Text style={styles.totalText}>Total: ${total.toFixed(2)}</Text>
                 </View>
             )
@@ -179,7 +200,7 @@ const CheckoutScreen = () => {
         {
             key: 'payButton', render: () => (
                 <TouchableOpacity style={styles.payButton} onPress={handlePayment}>
-                    <Text style={styles.payButtonText}>Pay</Text>
+                    <Text style={styles.payButtonText}>Payer</Text>
                 </TouchableOpacity>
             )
         }
@@ -200,22 +221,23 @@ const styles = StyleSheet.create({
     },
     infoHeader: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrima',
         justifyContent: 'center',
         padding: 5,
         margin: 10,
     },
     userInfoSection: {
-        marginBottom: 20,
         padding: 20,
+        paddingBottom: 5,
     },
     orderSummarySection: {
-        marginBottom: 20,
+        marginBottom: 10,
         padding: 20,
     },
     label: {
         fontSize: 16,
         marginBottom: 5,
+        fontFamily: 'Ebrima',
     },
     input: {
         borderWidth: 1,
@@ -223,6 +245,15 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 10,
         borderRadius: 5,
+        fontFamily: 'Ebrima',
+    },
+    inputCvv: {
+        borderWidth: 1,
+        borderColor: 'gray',
+        padding: 10,
+        borderRadius: 5,
+        fontFamily: 'Ebrima',
+        flex: 1,
     },
     autocompleteContainer: {
         position: 'absolute',
@@ -239,15 +270,22 @@ const styles = StyleSheet.create({
         fontSize: 16,
         borderBottomWidth: 1,
         borderColor: 'gray',
+        fontFamily: 'Ebrima',
     },
     summaryText: {
         fontSize: 16,
         marginBottom: 5,
+        fontFamily: 'Ebrima',
     },
     totalText: {
         fontSize: 18,
-        fontWeight: 'bold',
         marginTop: 10,
+        fontFamily: 'Ebrima',
+    },
+    sommaireText: {
+        fontSize: 20,
+        marginBottom: 10,
+        fontFamily: 'Ebrimabd',
     },
     payButton: {
         backgroundColor: 'blue',
@@ -259,6 +297,14 @@ const styles = StyleSheet.create({
     payButtonText: {
         color: 'white',
         fontSize: 18,
+        fontFamily: 'Ebrima',
+    },
+    cvvContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    cvvIcon: {
+        marginLeft: 10,
     },
 });
 
