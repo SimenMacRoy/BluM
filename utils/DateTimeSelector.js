@@ -10,28 +10,36 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
 
     useEffect(() => {
         generateDeliveryTimes();
-    }, []);
+    }, [selectedDate]);
 
     const generateDeliveryTimes = () => {
         let times = [];
         let currentTime = new Date();
-        if (currentTime.getHours() >= 22 || currentTime.getHours() < 7) {
-            currentTime.setHours(7, 0, 0, 0);
-            currentTime.setDate(currentTime.getDate() + 1);
+
+        if (selectedDate.toDateString() === currentTime.toDateString()) {
+            if (currentTime.getHours() >= 22 || currentTime.getHours() < 7) {
+                currentTime.setHours(7, 0, 0, 0);
+                currentTime.setDate(currentTime.getDate() + 1);
+            } else {
+                currentTime.setMinutes(currentTime.getMinutes() + 30);
+            }
         } else {
-            currentTime.setMinutes(currentTime.getMinutes() + 30 - (currentTime.getMinutes() % 5));
+            currentTime.setHours(7, 0, 0, 0);
         }
-        for (let i = 0; i < 8; i++) { // Generate times for the next 4 hours
-            let newTime = new Date(currentTime.getTime() + i * 30 * 60000);
-            times.push(newTime.toTimeString().substring(0, 5));
+
+        const endHour = 22;
+        while (currentTime.getHours() < endHour) {
+            times.push(currentTime.toTimeString().substring(0, 5));
+            currentTime.setMinutes(currentTime.getMinutes() + 30);
         }
+
         setDeliveryTimes(times);
         setSelectedTime(times[0]);
     };
 
     const handleDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || initialDate;
-        if (currentDate < new Date()) {
+        if (currentDate < new Date().setHours(0, 0, 0, 0)) {
             Alert.alert('Date Invalide', 'Veuillez choisir une date future.');
             setShowDatePicker(false);
             return;
@@ -48,6 +56,21 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
 
     return (
         <View>
+            <Text style={styles.subHeader}>Choisir la date de livraison:</Text>
+            <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+                <Text style={styles.dateText}>
+                    {showDatePicker ? 'Choisir la date' : `Date sélectionnée: ${selectedDate.toLocaleDateString()}`}
+                </Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+                <DateTimePicker
+                    value={selectedDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    minimumDate={new Date()}
+                />
+            )}
             <Text style={styles.subHeader}>Choisir l'heure de livraison:</Text>
             <View style={styles.timeContainer}>
                 {deliveryTimes.map((time, index) => (
@@ -60,21 +83,6 @@ const DateTimeSelector = ({ initialDate, onDateChange, initialTime, onTimeChange
                     </TouchableOpacity>
                 ))}
             </View>
-            <Text style={styles.subHeader}>Choisir la date de livraison:</Text>
-            <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-                <Text style={styles.dateText}>
-                    {showDatePicker ? 'Choose Date' : `Date sélectionnée: ${selectedDate.toLocaleDateString()}`}
-                </Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-                <DateTimePicker
-                    value={selectedDate}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateChange}
-                    minimumDate={new Date()}
-                />
-            )}
         </View>
     );
 };
