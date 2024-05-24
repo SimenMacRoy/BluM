@@ -1,32 +1,130 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, Linking, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, Linking, TouchableOpacity, TextInput, Button, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import UserContext from './UserContext';
 
 const RecipeTab = ({ route }) => {
     const { dish } = route.params;
+    const { currentUser } = useContext(UserContext);
     const [ingredients, setIngredients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [likes, setLikes] = useState(0);
+    const [dislikes, setDislikes] = useState(0);
 
     useEffect(() => {
         const fetchIngredients = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`); // Update with actual URL
+                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
                 setIngredients(data);
-                setLoading(false);
             } catch (err) {
                 console.error('Failed to fetch ingredients:', err);
                 setError(err.message);
-                setLoading(false);
+            }
+        };
+
+        const fetchComments = async () => {
+            try {
+                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/comment`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch comments');
+                }
+                const data = await response.json();
+                setComments(data);
+            } catch (err) {
+                console.error('Failed to fetch comments:', err);
+                setError(err.message);
+            }
+        };
+
+        const fetchLikesDislikes = async () => {
+            try {
+                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/likes_dislikes`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch likes/dislikes');
+                }
+                const data = await response.json();
+                setLikes(data.likes);
+                setDislikes(data.dislikes);
+            } catch (err) {
+                console.error('Failed to fetch likes/dislikes:', err);
+                setError(err.message);
             }
         };
 
         fetchIngredients();
+        fetchComments();
+        fetchLikesDislikes();
+        setLoading(false);
     }, [dish.id]);
+
+    const handleAddComment = async () => {
+        try {
+            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userID: currentUser.userID,
+                    comment_text: newComment,
+                }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to add comment');
+            }
+            const data = await response.json();
+            setComments([...comments, data]);
+            setNewComment('');
+        } catch (err) {
+            console.error('Failed to add comment:', err);
+            Alert.alert('Error', 'Failed to add comment');
+        }
+    };
+
+    const handleLike = async () => {
+        try {
+            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/like`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to like');
+            }
+            const data = await response.json();
+            setLikes(data.likes);
+        } catch (err) {
+            console.error('Failed to like:', err);
+            Alert.alert('Error', 'Failed to like');
+        }
+    };
+
+    const handleDislike = async () => {
+        try {
+            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/dislike`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to dislike');
+            }
+            const data = await response.json();
+            setDislikes(data.dislikes);
+        } catch (err) {
+            console.error('Failed to dislike:', err);
+            Alert.alert('Error', 'Failed to dislike');
+        }
+    };
 
     if (loading) {
         return <ActivityIndicator size="large" color="#15FCFC" />;
@@ -86,6 +184,40 @@ const RecipeTab = ({ route }) => {
                     <FontAwesome name="clock-o" size={24} color="gold" />
                 </View>
                 {dish.preparation && <Text style={styles.portion}>{dish.preparation}</Text>}
+
+                <View style={styles.commentSection}>
+                    <Text style={styles.commentTitle}>Commentaires</Text>
+                    {comments.map((comment, index) => (
+                        <View key={index} style={styles.commentContainer}>
+                            <Image source={{ uri: comment.profile_picture }} style={styles.commentProfilePicture} />
+                            <View>
+                                <Text style={styles.commentUser}>{comment.name} {comment.surname}</Text>
+                                <Text style={styles.commentDate}>{new Date(comment.created_at).toLocaleDateString()}</Text>
+                                <Text style={styles.commentText}>{comment.comment_text}</Text>
+                            </View>
+                        </View>
+                    ))}
+                    <TextInput
+                        style={styles.commentInput}
+                        placeholder="Ajoutez un commentaire..."
+                        value={newComment}
+                        onChangeText={setNewComment}
+                    />
+                    <TouchableOpacity style={styles.addCommentButton} onPress={handleAddComment}>
+                        <Text style={styles.addCommentButtonText}>Ajouter Commentaire</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.likeDislikeContainer}>
+                    <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
+                        <FontAwesome name="thumbs-up" size={24} color="green" />
+                        <Text style={{ fontFamily: 'Ebrima', fontSize: 16, paddingLeft: 5}}>{likes}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleDislike} style={styles.dislikeButton}>
+                        <FontAwesome name="thumbs-down" size={24} color="red" />
+                        <Text style={{ fontFamily: 'Ebrima', fontSize: 16, paddingLeft: 5}}>{dislikes}</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </ScrollView>
     );
@@ -138,6 +270,72 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 25,
         marginRight: 10,
+    },
+    commentSection: {
+        marginTop: 20,
+    },
+    commentTitle: {
+        fontSize: 20,
+        fontFamily: 'Ebrimabd',
+        marginBottom: 10,
+    },
+    commentContainer: {
+        flexDirection: 'row',
+        marginBottom: 10,
+        alignItems: 'center',
+    },
+    commentProfilePicture: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+    },
+    commentUser: {
+        fontSize: 16,
+        fontFamily: 'Ebrimabd',
+    },
+    commentDate: {
+        fontSize: 12,
+        fontFamily: 'Ebrima',
+        color: 'gray',
+    },
+    commentText: {
+        fontSize: 16,
+        fontFamily: 'Ebrima',
+    },
+    commentInput: {
+        width: '100%',
+        height: 40,
+        borderColor: 'gray',
+        borderWidth: 1,
+        marginBottom: 10,
+        padding: 10,
+        fontFamily: 'Ebrima',
+    },
+    addCommentButton: {
+        backgroundColor: '#15FCFC',
+        padding: 10,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    addCommentButtonText: {
+        fontSize: 16,
+        fontFamily: 'Ebrimabd',
+        color: 'black',
+    },
+    likeDislikeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: 20,
+    },
+    likeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    dislikeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
     }
 });
 

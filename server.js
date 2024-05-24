@@ -120,6 +120,93 @@ app.get('/api/dishes/:dishId', (req, res) => {
     });
 });
 
+app.get('/api/dishes/:dishId/likes_dislikes', (req, res) => {
+    const { dishId } = req.params;
+    const sql = `
+        SELECT dish_blums AS likes, dish_disblums AS dislikes
+        FROM DISHES
+        WHERE id = ?
+    `;
+
+    db.query(sql, [dishId], (err, results) => {
+        if (err) {
+            console.error(`Failed to retrieve likes/dislikes for dish with ID ${dishId} from database:`, err);
+            return res.status(500).send('Error fetching likes/dislikes from the database');
+        }
+        if (results.length === 0) {
+            return res.status(404).send('Dish not found');
+        }
+        res.json(results[0]);
+    });
+});
+
+app.post('/api/dishes/:dishId/like', (req, res) => {
+    const { dishId } = req.params;
+    db.query('UPDATE DISHES SET dish_blums = dish_blums + 1 WHERE id = ?', [dishId], (err, result) => {
+        if (err) {
+            console.error(`Failed to update likes for dish with ID ${dishId}:`, err);
+            return res.status(500).send('Error updating likes');
+        }
+        res.json({ success: true, message: 'Like added successfully' });
+    });
+});
+
+app.post('/api/dishes/:dishId/dislike', (req, res) => {
+    const { dishId } = req.params;
+    db.query('UPDATE DISHES SET dish_disblums = dish_disblums + 1 WHERE id = ?', [dishId], (err, result) => {
+        if (err) {
+            console.error(`Failed to update dislikes for dish with ID ${dishId}:`, err);
+            return res.status(500).send('Error updating dislikes');
+        }
+        res.json({ success: true, message: 'Dislike added successfully' });
+    });
+});
+app.get('/api/dishes/:dishId/comment', (req, res) => {
+    const { dishId } = req.params;
+    const sql = `
+        SELECT cd.comment_dishId, cd.userID, u.name, u.surname, u.profile_picture, cd.comment_text, cd.created_at 
+        FROM COMMENT_DISH cd
+        JOIN USERS u ON cd.userID = u.userID
+        WHERE cd.id = ?
+        ORDER BY cd.created_at DESC
+    `;
+
+    db.query(sql, [dishId], (err, results) => {
+        if (err) {
+            console.error(`Failed to retrieve comments for dish with ID ${dishId} from database:`, err);
+            return res.status(500).send('Error fetching comments from the database');
+        }
+        res.json(results);
+    });
+});
+
+app.post('/api/dishes/:dishId/comments', (req, res) => {
+    const { dishId } = req.params;
+    const { userID, comment_text } = req.body;
+
+    const sql = `
+        INSERT INTO COMMENT_DISH (userID, id, comment_text, created_at)
+        VALUES (?, ?, ?, NOW())
+    `;
+
+    db.query(sql, [userID, dishId, comment_text], (err, result) => {
+        if (err) {
+            console.error(`Failed to post comment for dish with ID ${id}:`, err);
+            return res.status(500).send('Error posting comment');
+        }
+
+        const newComment = {
+            comment_dishId: result.insertId,
+            userID,
+            comment_text,
+            created_at: new Date(),
+        };
+
+        res.json(newComment);
+    });
+});
+
+
 app.get('/api/dishes/:dishId/ingredients', (req, res) => {
     const { dishId } = req.params;
 
@@ -564,7 +651,7 @@ app.get('/api/users/:userId/blumees', (req, res) => {
 
 app.get('/api/users/:userId', (req, res) => {
     const userId = req.params.userId;
-    const query = 'SELECT name, surname, email, phone_number, postal_address, country_of_origin, profile_picture FROM USERS WHERE userID = ?';
+    const query = 'SELECT name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, password FROM USERS WHERE userID = ?';
     db.query(query, [userId], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         if (results.length === 0) return res.status(404).json({ error: 'User not found' });
@@ -572,32 +659,77 @@ app.get('/api/users/:userId', (req, res) => {
     });
 });
 
-app.post('/api/users/:userID/update', (req, res) => {
+app.post('/api/users/:userID/update', async (req, res) => {
     const { userID } = req.params;
-    const { name, surname, email, phone_number, postal_address, country_of_origin, profile_picture } = req.body;
+    const { name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, current_password, new_password, password } = req.body;
 
-    const sql = `
-        UPDATE USERS
-        SET
-            name = ?,
-            surname = ?,
-            email = ?,
-            phone_number = ?,
-            postal_address = ?,
-            country_of_origin = ?,
-            profile_picture = ?
-        WHERE userID = ?
-    `;
-
-    db.query(sql, [name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, userID], (err, result) => {
-        if (err) {
-            console.error('Failed to update user:', err);
-            return res.status(500).send('Failed to update user');
-        }
-        res.json({ success: true, message: 'Profile updated successfully' });
+    console.log('Received user data for update:', {
+        userID, name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, current_password, new_password
     });
-});
 
+    try {
+        // If the current_password and new_password are provided, handle password update
+        if (current_password && new_password) {
+            // Fetch the user's current password from the database
+            const [rows] = await db.promise().query('SELECT password FROM USERS WHERE userID = ?', [userID]);
+            if (rows.length === 0) {
+                return res.status(404).send('User not found');
+            }
+
+            const user = rows[0];
+            const isMatch1 = await bcrypt.compare(current_password, user.password);
+            const isMatch2 = await bcrypt.compare(new_password, user.password);
+            if (!isMatch1) {
+                return res.status(400).json({ success: false, message: 'Mot de passe courant est incorrect.' });
+            }
+            if (isMatch2){
+                return res.status(400).json({ success: false, message: 'Les deux mot de passes doivent différer.' });
+            }
+
+            // Hash the new password
+            const hashedPassword = await bcrypt.hash(new_password, 10);
+
+            // Update user details including the new hashed password
+            const sql = `
+                UPDATE USERS
+                SET
+                    name = ?,
+                    surname = ?,
+                    email = ?,
+                    phone_number = ?,
+                    postal_address = ?,
+                    country_of_origin = ?,
+                    profile_picture = ?,
+                    password = ?
+                WHERE userID = ?
+            `;
+
+            await db.promise().query(sql, [name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, hashedPassword, userID]);
+        } else {
+            // Update user details without password
+            const sql = `
+                UPDATE USERS
+                SET
+                    name = ?,
+                    surname = ?,
+                    email = ?,
+                    phone_number = ?,
+                    postal_address = ?,
+                    country_of_origin = ?,
+                    profile_picture = ?
+                WHERE userID = ?
+            `;
+
+            await db.promise().query(sql, [name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, userID]);
+        }
+
+        console.log('User updated successfully');
+        res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (err) {
+        console.error('Failed to update user:', err);
+        res.status(500).send('Failed to update user');
+    }
+});
 app.get('/api/receipts', (req, res) => {
     const query = `
         SELECT 

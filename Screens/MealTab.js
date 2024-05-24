@@ -1,38 +1,22 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import BasketContext from './BasketContext';
+import DateTimeSelector from '../utils/DateTimeSelector'; // Adjust the import path as necessary
 
 const MealTab = ({ route }) => {
     const { dish, existingItem } = route.params;
     const { addToBasket } = useContext(BasketContext);
     const [quantity, setQuantity] = useState(existingItem ? existingItem.quantity.toString() : '');
-    const [deliveryTime, setDeliveryTime] = useState(existingItem ? existingItem.deliveryTime : '');
-    const [deliveryDate, setDeliveryDate] = useState(existingItem ? new Date(existingItem.deliveryDate) : new Date());
-    const [showDatePicker, setShowDatePicker] = useState(false);
     const [specifications, setSpecifications] = useState(existingItem ? existingItem.specifications : []);
-    const [deliveryTimes, setDeliveryTimes] = useState([]);
+    const [deliveryDate, setDeliveryDate] = useState(existingItem ? new Date(existingItem.deliveryDate) : new Date());
+    const [deliveryTime, setDeliveryTime] = useState(existingItem ? existingItem.deliveryTime : '');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!dish) return;
-        generateDeliveryTimes(new Date());
-    }, []);
-
-    useEffect(() => {
-        if (!existingItem) return;
-        setQuantity(existingItem.quantity.toString());
-        setDeliveryTime(existingItem.deliveryTime);
-        setDeliveryDate(new Date(existingItem.deliveryDate));
-        setSpecifications(existingItem.specifications);
-    }, [existingItem]);
-
-    useEffect(() => {
-        if (!existingItem || !existingItem.specifications || existingItem.specifications.length === 0) {
+        if (!existingItem) {
             fetchIngredients();
         } else {
-            setSpecifications(existingItem.specifications);
             setLoading(false);
         }
     }, [dish.id, existingItem]);
@@ -59,29 +43,13 @@ const MealTab = ({ route }) => {
         }
     };
 
-    const generateDeliveryTimes = (chosenTime) => {
-        const proposedTimes = [];
-        const currentHour = chosenTime.getHours();
-        const startTime = (currentHour >= 22 || currentHour < 7) ? new Date(chosenTime.setHours(7, 0, 0, 0)) : new Date(chosenTime);
-        
-        startTime.setMinutes(Math.ceil(startTime.getMinutes() / 15) * 15);
-
-        for (let i = 0; i < 10; i++) {
-            const nextTime = new Date(startTime);
-            nextTime.setMinutes(startTime.getMinutes() + i * 15);
-            proposedTimes.push(nextTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        }
-
-        setDeliveryTimes(proposedTimes);
-    };
-
     const handleAddToBasket = () => {
         if (!quantity || quantity <= 0) {
             Alert.alert('Quantité Invalide', 'Veuillez entrer une quantité valide !');
             return;
         }
 
-        if (!deliveryTime && deliveryTimes.length > 0) {
+        if (!deliveryTime) {
             Alert.alert('Heure Invalide', 'Veuillez entrer une heure valide !');
             return;
         }
@@ -105,25 +73,6 @@ const MealTab = ({ route }) => {
         });
         Alert.alert(existingItem ? 'Panier modifié' : 'Plat ajouté au panier !');
     };
-    
-    const onDateChange = (event, selectedDate) => {
-        const currentDate = selectedDate || deliveryDate;
-        if (currentDate < new Date()) {
-            Alert.alert('Date Invalide', 'Veuillez choisir une date future.');
-            setShowDatePicker(false);
-            return;
-        }
-        setShowDatePicker(false);
-        setDeliveryDate(currentDate);
-    };
-
-    const handleTimeSelect = (time) => {
-        setDeliveryTime(time);
-    };
-
-    useEffect(() => {
-        generateDeliveryTimes(new Date());
-    }, [deliveryDate]);
 
     const increaseQuantity = (index) => {
         const newSpecifications = [...specifications];
@@ -166,34 +115,12 @@ const MealTab = ({ route }) => {
                     keyboardType='numeric' 
                     placeholder='Entrez le nombre de portion' />
 
-                <Text style={styles.subHeader}>Heure de livraison</Text>
-                <View style={styles.timeContainer}>
-                    {deliveryTimes.map((time, index) => (
-                        <TouchableOpacity 
-                            key={index} 
-                            style={[styles.timeButton, deliveryTime === time && styles.selectedTime]}
-                            onPress={() => handleTimeSelect(time)}
-                        >
-                            <Text style={styles.timeText}>{time}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                <Text style={styles.subHeader}>La date</Text>
-                <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-                    <Text style={styles.dateText}>
-                        {showDatePicker ? 'Choose Date' : `Date selectionnée: ${deliveryDate.toLocaleDateString()}`}
-                    </Text>
-                </TouchableOpacity>
-                {showDatePicker && (
-                    <DateTimePicker
-                        value={deliveryDate}
-                        mode="date"
-                        display="default"
-                        onChange={onDateChange}
-                        minimumDate={new Date()} // Prevent choosing a past date
-                    />
-                )}
+                <DateTimeSelector
+                    initialDate={deliveryDate}
+                    onDateChange={setDeliveryDate}
+                    initialTime={deliveryTime}
+                    onTimeChange={setDeliveryTime}
+                />
 
                 <Text style={styles.subHeader}>Spécifications(+ ou - d'ingrédients)</Text>
                 <View style={styles.specificationsContainer}>
@@ -238,57 +165,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         marginBottom: 15,
         fontFamily: 'Ebrima',
-    },
-    timeContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginVertical: 10,
-    },
-    timeButton: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#15FCFC',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 20,
-        marginBottom: 10,
-    },
-    selectedTime: {
-        backgroundColor: '#15B8B8',
-    },
-    timeText: {
-        fontSize: 16,
-        color: 'white',
-        fontFamily: 'Ebrima',
-    },
-    dateButton: {
-        padding: 10,
-        backgroundColor: '#e7e7e7',
-        borderRadius: 5,
-        marginBottom: 15,
-    },
-    dateText: {
-        fontSize: 16,
-        textAlign: 'center',
-        fontFamily: 'Ebrima',
-    },
-    addToBasketButton: {
-        backgroundColor: '#15FCFC',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        marginTop: 20,
-        marginBottom: 30
-    },
-    buttonText: {
-        fontSize: 18,
-        color: 'white',
-        fontFamily: 'Ebrimabd',
+        alignSelf: 'center',
     },
     subHeader: {
         fontSize: 20,
         fontFamily: 'Ebrimabd',
+        alignSelf: 'center',
     },
     specificationsContainer: {
         maxHeight: 200,
@@ -332,6 +214,19 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: 'gray',
         marginTop: 5,
+        fontFamily: 'Ebrimabd',
+    },
+    addToBasketButton: {
+        backgroundColor: '#15FCFC',
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: 30
+    },
+    buttonText: {
+        fontSize: 18,
+        color: 'white',
         fontFamily: 'Ebrimabd',
     },
 });
