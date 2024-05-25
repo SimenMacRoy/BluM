@@ -67,7 +67,10 @@ const RecipeScreenDetail = ({ route }) => {
             <Header />
             {dish && (
                 <View style={styles.detailContainer}>
-                    <Image source={{ uri: dish.image }} style={styles.foodImage} />
+                     <TouchableOpacity onPress={() => navigation.navigate('ImageScreen', { imageUrl: dish.image, posterName: dish.title })}>
+                        <Image source={{ uri: dish.image }} style={styles.foodImage} />
+                    </TouchableOpacity>
+                    
                     <View style={styles.titleContainer}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                             <Text style={styles.foodTitle}>{dish.title}</Text>
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     foodImage: {
-        width: '30%',
+        width: 120,
         aspectRatio: 1,
         borderRadius: 60,
     },
