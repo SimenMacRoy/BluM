@@ -13,6 +13,8 @@ const RecipeTab = ({ route }) => {
     const [newComment, setNewComment] = useState('');
     const [likes, setLikes] = useState(0);
     const [dislikes, setDislikes] = useState(0);
+    const [userLiked, setUserLiked] = useState(false);
+    const [userDisliked, setUserDisliked] = useState(false);
 
     useEffect(() => {
         const fetchIngredients = async () => {
@@ -45,13 +47,15 @@ const RecipeTab = ({ route }) => {
 
         const fetchLikesDislikes = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/likes_dislikes`);
+                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/likes_dislikes?userID=${currentUser.userID}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch likes/dislikes');
                 }
                 const data = await response.json();
                 setLikes(data.likes);
                 setDislikes(data.dislikes);
+                setUserLiked(data.userLiked === 1);
+                setUserDisliked(data.userDisliked === 1);
             } catch (err) {
                 console.error('Failed to fetch likes/dislikes:', err);
                 setError(err.message);
@@ -95,12 +99,16 @@ const RecipeTab = ({ route }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ userID: currentUser.userID }),
             });
-            if (!response.ok) {
-                throw new Error('Failed to like');
-            }
             const data = await response.json();
-            setLikes(data.likes);
+            if (data.success) {
+                setLikes(data.likes);
+                setUserLiked(true);
+                setUserDisliked(false);
+            } else {
+                Alert.alert('Error', data.message);
+            }
         } catch (err) {
             console.error('Failed to like:', err);
             Alert.alert('Error', 'Failed to like');
@@ -114,12 +122,16 @@ const RecipeTab = ({ route }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ userID: currentUser.userID }),
             });
-            if (!response.ok) {
-                throw new Error('Failed to dislike');
-            }
             const data = await response.json();
-            setDislikes(data.dislikes);
+            if (data.success) {
+                setDislikes(data.dislikes);
+                setUserLiked(false);
+                setUserDisliked(true);
+            } else {
+                Alert.alert('Error', data.message);
+            }
         } catch (err) {
             console.error('Failed to dislike:', err);
             Alert.alert('Error', 'Failed to dislike');
@@ -210,11 +222,11 @@ const RecipeTab = ({ route }) => {
 
                 <View style={styles.likeDislikeContainer}>
                     <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
-                        <FontAwesome name="thumbs-up" size={24} color="green" />
+                        <FontAwesome name="thumbs-up" size={24} color={userLiked ? "green" : "gray"} />
                         <Text style={{ fontFamily: 'Ebrima', fontSize: 16, paddingLeft: 5}}>{likes}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handleDislike} style={styles.dislikeButton}>
-                        <FontAwesome name="thumbs-down" size={24} color="red" />
+                        <FontAwesome name="thumbs-down" size={24} color={userDisliked ? "red" : "gray"} />
                         <Text style={{ fontFamily: 'Ebrima', fontSize: 16, paddingLeft: 5}}>{dislikes}</Text>
                     </TouchableOpacity>
                 </View>
@@ -283,6 +295,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginBottom: 10,
         alignItems: 'center',
+        padding: 10,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
     },
     commentProfilePicture: {
         width: 40,

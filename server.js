@@ -120,17 +120,21 @@ app.get('/api/dishes/:dishId', (req, res) => {
     });
 });
 
-app.get('/api/dishes/:dishId/likes_dislikes', (req, res) => {
-    const { dishId } = req.params;
+app.get('/api/dishes/:dishID/likes_dislikes', (req, res) => {
+    const { dishID } = req.params;
+    const { userID } = req.query; // Assuming userID is passed as a query parameter
+
     const sql = `
-        SELECT dish_blums AS likes, dish_disblums AS dislikes
+        SELECT dish_blums AS likes, dish_disblums AS dislikes,
+        (SELECT liked FROM USER_LIKES_DISLIKES WHERE userID = ? AND id = ?) AS userLiked,
+        (SELECT disliked FROM USER_LIKES_DISLIKES WHERE userID = ? AND id = ?) AS userDisliked
         FROM DISHES
         WHERE id = ?
     `;
 
-    db.query(sql, [dishId], (err, results) => {
+    db.query(sql, [userID, dishID, userID, dishID, dishID], (err, results) => {
         if (err) {
-            console.error(`Failed to retrieve likes/dislikes for dish with ID ${dishId} from database:`, err);
+            console.error(`Failed to retrieve likes/dislikes for dish with ID ${dishID} from database:`, err);
             return res.status(500).send('Error fetching likes/dislikes from the database');
         }
         if (results.length === 0) {
@@ -140,25 +144,84 @@ app.get('/api/dishes/:dishId/likes_dislikes', (req, res) => {
     });
 });
 
-app.post('/api/dishes/:dishId/like', (req, res) => {
-    const { dishId } = req.params;
-    db.query('UPDATE DISHES SET dish_blums = dish_blums + 1 WHERE id = ?', [dishId], (err, result) => {
+
+app.post('/api/dishes/:dishID/like', (req, res) => {
+    const { dishID } = req.params;
+    const { userID } = req.body;
+
+    const checkSql = 'SELECT * FROM USER_LIKES_DISLIKES WHERE userID = ? AND id = ?';
+    db.query(checkSql, [userID, dishID], (err, results) => {
         if (err) {
-            console.error(`Failed to update likes for dish with ID ${dishId}:`, err);
-            return res.status(500).send('Error updating likes');
+            console.error(`Failed to check likes for dish with ID ${dishID}:`, err);
+            return res.status(500).send('Error checking likes');
         }
-        res.json({ success: true, message: 'Like added successfully' });
+
+        if (results.length > 0 && results[0].liked) {
+            return res.status(400).json({success: false, message: 'User has already liked this dish'});
+        } else if (results.length > 0 && results[0].disliked) {
+            return res.status(400).json({success: false, message: 'User has already disliked this dish'});
+        }
+
+        const updateSql = 'UPDATE DISHES SET dish_blums = dish_blums + 1 WHERE id = ?';
+        db.query(updateSql, [dishID], (err, result) => {
+            if (err) {
+                console.error(`Failed to update likes for dish with ID ${dishID}:`, err);
+                return res.status(500).send('Error updating likes');
+            }
+
+            const insertSql = `
+                INSERT INTO USER_LIKES_DISLIKES (userID, id, liked)
+                VALUES (?, ?, 1)
+                ON DUPLICATE KEY UPDATE liked = 1, disliked = NULL
+            `;
+            db.query(insertSql, [userID, dishID], (err, result) => {
+                if (err) {
+                    console.error(`Failed to update user likes for dish with ID ${dishID}:`, err);
+                    return res.status(500).send('Error updating user likes');
+                }
+                res.json({ success: true, message: 'Like added successfully' });
+            });
+        });
     });
 });
 
-app.post('/api/dishes/:dishId/dislike', (req, res) => {
-    const { dishId } = req.params;
-    db.query('UPDATE DISHES SET dish_disblums = dish_disblums + 1 WHERE id = ?', [dishId], (err, result) => {
+app.post('/api/dishes/:dishID/dislike', (req, res) => {
+    const { dishID } = req.params;
+    const { userID } = req.body;
+
+    const checkSql = 'SELECT * FROM USER_LIKES_DISLIKES WHERE userID = ? AND id = ?';
+    db.query(checkSql, [userID, dishID], (err, results) => {
         if (err) {
-            console.error(`Failed to update dislikes for dish with ID ${dishId}:`, err);
-            return res.status(500).send('Error updating dislikes');
+            console.error(`Failed to check dislikes for dish with ID ${dishID}:`, err);
+            return res.status(500).send('Error checking dislikes');
         }
-        res.json({ success: true, message: 'Dislike added successfully' });
+
+        if (results.length > 0 && results[0].disliked) {
+            return res.status(400).json({ success: false, message: 'User has already disliked this dish' });
+        } else if (results.length > 0 && results[0].liked) {
+            return res.status(400).json({ success: false, message: 'User has already liked this dish' });
+        }
+
+        const updateSql = 'UPDATE DISHES SET dish_disblums = dish_disblums + 1 WHERE id = ?';
+        db.query(updateSql, [dishID], (err, result) => {
+            if (err) {
+                console.error(`Failed to update dislikes for dish with ID ${dishID}:`, err);
+                return res.status(500).send('Error updating dislikes');
+            }
+
+            const insertSql = `
+                INSERT INTO USER_LIKES_DISLIKES (userID, id, disliked)
+                VALUES (?, ?, 1)
+                ON DUPLICATE KEY UPDATE disliked = 1, liked = NULL
+            `;
+            db.query(insertSql, [userID, dishID], (err, result) => {
+                if (err) {
+                    console.error(`Failed to update user dislikes for dish with ID ${dishID}:`, err);
+                    return res.status(500).send('Error updating user dislikes');
+                }
+                res.json({ success: true, message: 'Dislike added successfully' });
+            });
+        });
     });
 });
 app.get('/api/dishes/:dishId/comment', (req, res) => {
