@@ -56,6 +56,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   text: {
-    fontFamily: 'Ebrima', // or 'AptosDisplay'
+    fontFamily: 'Ebrima',
   },
 });

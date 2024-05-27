@@ -1,7 +1,7 @@
-// ResetPasswordScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+
 
 const ResetPasswordScreen = ({ route }) => {
     const { token } = route.params;

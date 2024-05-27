@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
         
     },
     timeText: {
-        color: 'white',
+        color: 'black',
         fontSize: 16,
         fontFamily: 'Ebrima',
     },

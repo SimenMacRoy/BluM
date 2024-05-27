@@ -896,14 +896,17 @@ app.post('/api/reset-password', (req, res) => {
         const userID = results[0].userID;
         const token = jwt.sign({ userID }, 'your_jwt_secret', { expiresIn: '1h' });
 
-        const resetUrl = `http://blumapp.com/reset-password/${token}`;
+        // Use a web URL that redirects to the deep link
+        const resetUrl = `https://blumapp.vercel.app/reset-password/${token}`;
         const mailOptions = {
-            from: 'macroysimen@gmail.com', // Change to your email
+            from: 'macroysimen@gmail.com',
             to: email,
             subject: 'Password Reset',
             html: `
                 <p>Click on the following link to reset your password:</p>
                 <a href="${resetUrl}">${resetUrl}</a>
+                <p>If the link does not work, copy and paste the following URL into your browser:</p>
+                <p>${resetUrl}</p>
             `,
         };
 
@@ -917,7 +920,6 @@ app.post('/api/reset-password', (req, res) => {
         });
     });
 });
-
 
 app.post('/api/reset-password/:token', async (req, res) => {
     const { token } = req.params;
@@ -952,10 +954,10 @@ app.post('/api/reset-password/:token', async (req, res) => {
 
 app.get('/reset-password/:token', (req, res) => {
     const { token } = req.params;
-
-    // Serve a simple HTML form with the token
-    res.redirect(`blumapp://reset-password/${token}`);
+    const deepLink = `blumapp://reset-password/${token}`;
+    res.redirect(deepLink);
 });
+
 
 
 // Directly specify server port

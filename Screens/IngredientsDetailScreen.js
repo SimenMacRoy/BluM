@@ -225,15 +225,15 @@ const styles = StyleSheet.create({
         fontFamily: 'Ebrima',
     },
     addToBasketButton: {
-        backgroundColor: 'black',
+        backgroundColor: '#15FCFC',
         padding: 10,
         borderRadius: 10,
         marginTop: 20,
     },
     addToBasketText: {
-        color: 'white',
+        color: 'black',
         fontSize: 18,
-        fontFamily: 'Ebrima',
+        fontFamily: 'Ebrimabd',
     },
     foodContainer: {
         backgroundColor: '#15FCFC',

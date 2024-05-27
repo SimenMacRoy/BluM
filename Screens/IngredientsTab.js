@@ -177,16 +177,16 @@ const styles = StyleSheet.create({
         fontFamily: 'Ebrima',
     },
     checkoutButton: {
-        backgroundColor: 'black',
+        backgroundColor: '#15FCFC',
         padding: 15,
         margin: 20,
         borderRadius: 10,
         alignItems: 'center',
     },
     checkoutText: {
-        color: 'white',
+        color: 'black',
         fontSize: 18,
-        fontFamily: 'Ebrima',
+        fontFamily: 'Ebrimabd',
     },
     descriptionContainer: {
         backgroundColor: '#e6e6e6',

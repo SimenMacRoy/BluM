@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontFamily: 'Ebrimabd',
         textAlign: 'center',
         marginVertical: 20,
     },
@@ -69,18 +69,20 @@ const styles = StyleSheet.create({
         fontSize: 16,
         padding: 10,
         marginBottom: 20,
+        fontFamily: 'Ebrima'
     },
     buttonReset: {
         width: '100%',
         height: 50,
         borderRadius: 20,
-        backgroundColor: 'blue',
+        backgroundColor: '#15FCFC',
         justifyContent: 'center',
         alignItems: 'center',
     },
     buttonText: {
-        color: 'white',
+        color: 'black',
         fontSize: 18,
+        fontFamily: 'Ebrima'
     },
 });
 
