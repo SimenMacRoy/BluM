@@ -902,7 +902,7 @@ app.post('/api/request-reset-password', (req, res) => {
           return res.status(500).send({ error: 'Internal Server Error' });
         }
   
-        const resetUrl = `https://blumapp.vercel.app/reset-password.html?token=${token}`;
+        const resetUrl = `https://blumapp-rlsi1j69r-mac-roys-projects.vercel.app/reset-password.html?token=${token}`;
         const mailOptions = {
           from: 'macroysimen@gmail.com',
           to: email,
