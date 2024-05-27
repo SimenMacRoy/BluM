@@ -7,6 +7,4 @@ app.get('/reset-password/:token', (req, res) => {
     res.redirect(deepLink);
 });
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});
+module.exports = app;

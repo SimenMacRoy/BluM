@@ -8,7 +8,7 @@ const ForgotPasswordScreen = () => {
 
     const handlePasswordReset = async () => {
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/reset-password', {
+            const response = await fetch('http://192.168.69.205:3006/api/request-reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })

@@ -873,93 +873,96 @@ app.post('/api/send-email', (req, res) => {
     });
 });
 
-
-// Password reset endpoints
-app.post('/api/reset-password', (req, res) => {
+app.post('/api/request-reset-password', (req, res) => {
     const { email } = req.body;
-
+  
     if (!email) {
-        return res.status(400).send({ error: 'Email is required' });
+      return res.status(400).send({ error: 'Email is required' });
     }
-
+  
     const query = 'SELECT userID FROM USERS WHERE email = ?';
     db.query(query, [email], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send({ error: 'Internal Server Error' });
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).send({ error: 'Email not found' });
+      }
+  
+      const userID = results[0].userID;
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiration = Date.now() + 3600000; // Token expires in 1 hour
+  
+      const updateQuery = 'UPDATE USERS SET resetToken = ?, resetTokenExpiration = ? WHERE userID = ?';
+      db.query(updateQuery, [token, expiration, userID], (err) => {
         if (err) {
-            console.error('Database error:', err);
-            return res.status(500).send({ error: 'Internal Server Error' });
+          console.error('Database error:', err);
+          return res.status(500).send({ error: 'Internal Server Error' });
         }
-
-        if (results.length === 0) {
-            return res.status(404).send({ error: 'Email not found' });
-        }
-
-        const userID = results[0].userID;
-        const token = jwt.sign({ userID }, 'your_jwt_secret', { expiresIn: '1h' });
-
-        // Use a web URL that redirects to the deep link
-        const resetUrl = `https://blumapp.vercel.app/reset-password/${token}`;
+  
+        const resetUrl = `https://blumapp.vercel.app/reset-password.html?token=${token}`;
         const mailOptions = {
-            from: 'macroysimen@gmail.com',
-            to: email,
-            subject: 'Password Reset',
-            html: `
-                <p>Click on the following link to reset your password:</p>
-                <a href="${resetUrl}">${resetUrl}</a>
-                <p>If the link does not work, copy and paste the following URL into your browser:</p>
-                <p>${resetUrl}</p>
-            `,
+          from: 'macroysimen@gmail.com',
+          to: email,
+          subject: 'Password Reset',
+          html: `
+            <p>Click on the following link to reset your password:</p>
+            <a href="${resetUrl}">${resetUrl}</a>
+            <p>If the link does not work, copy and paste the following URL into your browser:</p>
+            <p>${resetUrl}</p>
+          `,
         };
-
+  
         transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log('Error sending email:', error);
-                return res.status(500).send({ error: 'Error sending email' });
-            }
-            console.log('Email sent:', info.response);
-            res.json({ success: true, message: 'Password reset email sent' });
+          if (error) {
+            console.log('Error sending email:', error);
+            return res.status(500).send({ error: 'Error sending email' });
+          }
+          console.log('Email sent:', info.response);
+          res.json({ success: true, message: 'Password reset email sent' });
         });
+      });
     });
-});
-
-app.post('/api/reset-password/:token', async (req, res) => {
-    const { token } = req.params;
-    const { password, confirmPassword } = req.body;
-
-    if (!password || !confirmPassword) {
-        return res.status(400).send({ error: 'Both password fields are required' });
+  });
+  
+  app.post('/api/reset-password', async (req, res) => {
+    const { token, password, confirmPassword } = req.body;
+  
+    if (!token || !password || !confirmPassword) {
+      return res.status(400).send({ error: 'All fields are required' });
     }
-
+  
     if (password !== confirmPassword) {
-        return res.status(400).send({ error: 'Passwords do not match' });
+      return res.status(400).send({ error: 'Passwords do not match' });
     }
-
-    try {
-        const decoded = jwt.verify(token, 'your_jwt_secret');
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const query = 'UPDATE USERS SET password = ? WHERE userID = ?';
-        db.query(query, [hashedPassword, decoded.userID], (err) => {
-            if (err) {
-                console.error('Database error:', err);
-                return res.status(500).send({ error: 'Internal Server Error' });
-            }
-
-            res.json({ success: true, message: 'Password has been reset' });
-        });
-    } catch (error) {
-        console.error('Error resetting password:', error);
-        res.status(500).send({ error: 'An error occurred while resetting the password' });
-    }
-});
-
-app.get('/reset-password/:token', (req, res) => {
-    const { token } = req.params;
-    const deepLink = `blumapp://reset-password/${token}`;
-    res.redirect(deepLink);
-});
-
-
-
+  
+    const query = 'SELECT userID, resetTokenExpiration FROM USERS WHERE resetToken = ?';
+    db.query(query, [token], async (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).send({ error: 'Internal Server Error' });
+      }
+  
+      if (results.length === 0 || results[0].resetTokenExpiration < Date.now()) {
+        return res.status(400).send({ error: 'Invalid or expired token' });
+      }
+  
+      const userID = results[0].userID;
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      const updateQuery = 'UPDATE USERS SET password = ?, resetToken = NULL, resetTokenExpiration = NULL WHERE userID = ?';
+      db.query(updateQuery, [hashedPassword, userID], (err) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).send({ error: 'Internal Server Error' });
+        }
+  
+        res.json({ success: true, message: 'Password has been reset' });
+      });
+    });
+  });
 // Directly specify server port
 const port = 3006; // Replace with your desired port
 app.listen(port, () => {
