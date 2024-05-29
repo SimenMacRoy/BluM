@@ -1,3 +1,4 @@
+// ForgotPasswordScreen.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, Alert, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -16,14 +17,13 @@ const ForgotPasswordScreen = () => {
 
             const data = await response.json();
             if (data.success) {
-                Alert.alert('Succès', 'Suivez les instructions envoyées par courriel.');
-                navigation.navigate('LoginScreen');
+                navigation.navigate('CodeVerificationScreen', { email });
             } else {
-                Alert.alert('Error', data.error);
+                Alert.alert('Erreur', data.error);
             }
         } catch (error) {
             console.error('Error during password reset:', error);
-            Alert.alert('Error', 'An error occurred while trying to reset the password.');
+            Alert.alert('Erreur', 'An error occurred while trying to reset the password.');
         }
     };
 
@@ -45,7 +45,7 @@ const ForgotPasswordScreen = () => {
             </Pressable>
         </ScrollView>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {

@@ -44,6 +44,7 @@ const TabNavigator = () => {
         activeTintColor: 'blue',
         inactiveTintColor: 'gray',
         keyboardHidesTabBar: true,
+  
       })}
     >
       <Tab.Screen name="Recettes" component={RecipeNav} options={{headerShown: false}}/>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Image, Alert} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import ModalDropdown from 'react-native-modal-dropdown'; 
+import countries from '../countries.json'; 
 
 const RegistrationScreen = () => {
     const [name, setName] = useState('');
@@ -77,6 +79,18 @@ const RegistrationScreen = () => {
         }
     };
 
+    const renderCountryOption = (option) => {
+        return (
+            <View style={styles.dropdownItem}>
+                <Text style={styles.dropdownItemText}>{option.flag} {option.name}</Text>
+            </View>
+        );
+    };
+
+    const handleCountrySelect = (index, value) => {
+        setCountryOfOrigin(`${value.flag} ${value.name}`);
+    };
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.logoContainer}>
@@ -110,7 +124,15 @@ const RegistrationScreen = () => {
             <TextInput placeholder="Numéro de téléphone" value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad" style={styles.input} />
 
             <Text style={styles.label}>Pays d'origine</Text>
-            <TextInput placeholder="Pays d'origine" value={countryOfOrigin} onChangeText={setCountryOfOrigin} style={styles.input} />
+            <ModalDropdown
+                options={countries}
+                renderRow={renderCountryOption}
+                onSelect={(index, value) => handleCountrySelect(index, value)}
+                defaultValue={countryOfOrigin ? `${countryOfOrigin}` : 'Sélectionnez un pays'}
+                textStyle={styles.inputCountry}
+                dropdownStyle={styles.dropdown}
+                renderButtonText={(rowData) => `${rowData.flag} ${rowData.name}`} // Add this line
+            />
 
             <Text style={styles.label}>Mot de passe</Text>
             <TextInput placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
@@ -176,6 +198,20 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         alignSelf: 'center',
     },
+    dropdown: {
+        width: '80%',
+        maxHeight: 200,
+        marginTop: 10,
+        marginLeft: 0,
+    },
+    dropdownItem: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+    },
+    dropdownItemText: {
+        fontSize: 16,
+        fontFamily: 'Ebrima'
+    },
     registerButtonText: {
         fontSize: 18,
         color: 'black',
@@ -188,7 +224,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 20,
         marginBottom: 30
-    }
+    },
+    inputCountry: {
+        width: '100%',
+        height: 50,
+        marginVertical: 10,
+        padding: 10,
+        borderWidth: 1,
+        borderRadius: 5,
+        fontFamily: 'Ebrima',
+    },
 });
 
 export default RegistrationScreen;

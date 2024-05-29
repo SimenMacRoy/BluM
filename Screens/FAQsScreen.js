@@ -6,15 +6,15 @@ const FAQsScreen = () => {
   const faqs = [
     {
       question: 'Comment puis-je réinitialiser mon mot de passe ?',
-      answer: 'Pour réinitialiser votre mot de passe, rendez-vous sur la page des paramètres, sélectionnez "Gestion du mot de passe" et suivez les instructions.'
+      answer: 'Pour réinitialiser votre mot de passe, rendez-vous sur la page "Mon compte", puis sélectionnez "Gérer mon profil". Ensuite vers la fin, vous pourriez suivre les indications pour modifier votre mot de passe.'
     },
     {
       question: 'Où puis-je consulter mon historique de transactions ?',
-      answer: 'Vous pouvez consulter votre historique de transactions dans la section "Mon Compte" accessible depuis le menu principal.'
+      answer: 'Vous pouvez consulter votre historique de transactions dans la section "Mon Compte" puis "Mes Factures".'
     },
     {
       question: 'Comment puis-je mettre à jour mes informations de profil ?',
-      answer: 'Vous pouvez mettre à jour vos informations de profil en naviguant vers la section "Profil" et en sélectionnant "Modifier le profil".'
+      answer: 'Vous pouvez mettre à jour vos informations de profil en naviguant vers la section "Mon Compte" et en sélectionnant "Gérer mon profil".'
     },
     {
       question: 'Quels modes de paiement sont acceptés ?',

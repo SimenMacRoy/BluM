@@ -1,40 +1,27 @@
 import React, { useContext } from 'react';
-import { Alert, View, Text, Image, StyleSheet, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { Alert, View, Text, Image, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import BasketContext from './BasketContext';
 import { useNavigation } from '@react-navigation/native';
 import Header from './Header';
 
 const Basket = () => {
-    const { basketItems, setBasketItems } = useContext(BasketContext);
+    const { basketItems, removeFromBasket } = useContext(BasketContext);
     const navigation = useNavigation();
 
     const navigateToCheckout = () => {
         navigation.navigate('CheckoutScreen');
     };
-    
+
     const handleModify = (item) => {
         const screen = item.type === 'Plat' ? 'RecipeScreenDetail' : 'IngredientsDetailScreen';
         const paramKey = item.type === 'Plat' ? 'dishId' : 'ingredientId';
-    
-        // Prepare the modified item, conditionally handle deliveryDate
+
         const modifiedItem = {
             ...item,
-            // Only convert deliveryDate to ISO string if the item type is 'Plat'
             deliveryDate: item.type === 'Plat' ? new Date(item.deliveryDate).toISOString() : item.deliveryDate
         };
-    
-        // Navigate to the detail screen with the modified item
-        navigation.navigate(screen, { [paramKey]: item.id, itemToUpdate: modifiedItem });
-    };
-    
 
-    const updateBasketItem = (updatedItem) => {
-        setBasketItems((prevItems) => {
-            const updatedItems = prevItems.map((item) =>
-                item.id === updatedItem.id ? updatedItem : item
-            );
-            return updatedItems;
-        });
+        navigation.navigate(screen, { [paramKey]: item.id, itemToUpdate: modifiedItem });
     };
 
     const handleDelete = (id) => {
@@ -43,18 +30,7 @@ const Basket = () => {
             "Voulez-vous vraiment supprimer cet item du panier?",
             [
                 { text: "Annuler", onPress: () => console.log("Deletion cancelled"), style: "cancel" },
-                { text: "OK", onPress: () => {
-                    setBasketItems(currentItems => {
-                        const updatedItems = currentItems.filter(item => item.id !== id);
-                        return updatedItems.map(item => {
-                            if (item.type === 'Plat') return item;
-                            else {
-                                // Remove ingredients of the deleted item
-                                return { ...item, specifications: [] };
-                            }
-                        });
-                    });
-                }}
+                { text: "OK", onPress: () => removeFromBasket(id) }
             ],
             { cancelable: false }
         );
@@ -67,7 +43,7 @@ const Basket = () => {
         const today = new Date();
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
         let deliveryDateString = '';
         if (
             deliveryDateTime.getDate() === today.getDate() &&
@@ -84,12 +60,12 @@ const Basket = () => {
         } else {
             deliveryDateString = `${deliveryDay}/${deliveryMonth}`;
         }
-    
+
         const deliveryTime = item.deliveryTime ? item.deliveryTime : '';
         const specificationsText = item.specifications?.length > 0
             ? item.specifications.map(spec => `${spec.title} (x${spec.quantity})`).join(', ')
             : "Aucune spécification pour ce repas";
-    
+
         return (
             <View style={styles.itemContainer}>
                 <Image source={{ uri: item.image }} style={styles.image} />
@@ -110,8 +86,7 @@ const Basket = () => {
                 </View>
             </View>
         );
-    };    
-    
+    };
 
     return (
         <View style={styles.container}>
@@ -130,14 +105,14 @@ const Basket = () => {
                     <Image source={require('C:\\Users\\Mac Roy\\Documents\\bluMApp\\assets\\addToCart.png')} style={styles.basketIcon} />
                 </View>
             )}
-            
+
             <TouchableOpacity onPress={() => navigation.navigate('Recettes')} style={styles.button}>
                 <Text style={styles.buttonText}>Magasiner</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={navigateToCheckout} disabled={basketItems.length === 0} style={[styles.button, { backgroundColor: basketItems.length === 0 ? 'grey' : 'blue' }]}>
+            <TouchableOpacity onPress={navigateToCheckout} disabled={basketItems.length === 0} style={[styles.button, { backgroundColor: basketItems.length === 0 ? 'grey' : '#15FCFC' }]}>
                 <Text style={styles.buttonText}>Payer</Text>
             </TouchableOpacity>
-            
+
         </View>
     );
 };
@@ -161,7 +136,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
-      },
+    },
     image: {
         width: 50,
         height: 50,
@@ -193,16 +168,15 @@ const styles = StyleSheet.create({
     },
     button: {
         margin: 15,
-        backgroundColor: 'blue',
+        backgroundColor: '#15FCFC',
         padding: 20,
         borderRadius: 5,
         alignItems: 'center',
-        
     },
     buttonText: {
-        color: 'white',
-        fontSize: 16,
-        fontFamily: 'Ebrima',
+        color: 'black',
+        fontSize: 18,
+        fontFamily: 'Ebrimabd',
     },
     emptyBasketContainer: {
         alignItems: 'center',

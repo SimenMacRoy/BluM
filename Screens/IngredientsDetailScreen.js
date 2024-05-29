@@ -6,6 +6,7 @@ import Header from './Header';
 import BasketContext from './BasketContext';
 import DateTimeSelector from '../utils/DateTimeSelector';
 import { useNavigation } from '@react-navigation/native';
+import ImageScreen from './ImageScreen';
 
 const IngredientsDetailScreen = ({ route }) => {
     const { ingredientId } = route.params;
@@ -149,8 +150,9 @@ const IngredientsDetailScreen = ({ route }) => {
             <Header />
 
             <View style={styles.foodContainer}>
-                <Image source={{ uri: ingredient.image }} style={styles.foodImage} />
-                <Text style={styles.foodTitle}>{ingredient.title}</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('ImageScreen', { imageUrl: ingredient.image, posterName: ingredient.title })}>
+                    <Image source={{ uri: ingredient.image }} style={styles.foodImage} />
+                </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.scroll}>
@@ -243,10 +245,9 @@ const styles = StyleSheet.create({
         margin: 10,
     },
     foodImage: {
-        width: 125,
-        height: 125,
-        resizeMode: 'cover',
-        borderRadius: 50,
+        width: 150,
+        aspectRatio: 0.75,
+        borderRadius: 60,
     },
     scroll: {
         flex: 1,

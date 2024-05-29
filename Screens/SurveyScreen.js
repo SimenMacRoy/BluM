@@ -116,7 +116,6 @@ const SurveyScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
         backgroundColor: '#f5f5f5'
     },
     title: {
@@ -127,7 +126,7 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     questionContainer: {
-        marginBottom: 20
+        margin: 20
     },
     question: {
         fontSize: 18,
@@ -156,11 +155,12 @@ const styles = StyleSheet.create({
         fontFamily: 'Ebrima',
     },
     button: {
-        backgroundColor: '#0066cc',
+        backgroundColor: '#15FCFC',
         padding: 15,
         borderRadius: 5,
         alignItems: 'center',
-        marginBottom: 60
+        marginBottom: 60,
+        marginHorizontal: 20
     },
     buttonText: {
         color: 'white',

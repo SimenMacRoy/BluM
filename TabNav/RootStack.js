@@ -31,8 +31,10 @@ import RecipeScreen from '../Screens/RecipeScreen';
 import CheckoutScreen from '../Screens/CheckoutScreen';
 import ForgotPasswordScreen from '../Screens/ForgotPasswordScreen';
 import ResetPasswordScreen from '../Screens/ResetPasswordScreen';
-
-
+import CodeVerificationScreen from '../Screens/CodeVerificationScreen';
+import PromotionsScreen from '../Screens/PromotionsScreen';
+import SupportScreen from '../Screens/SupportScreen';
+import AddDishScreen from '../Screens/AddDishScreen';
 
 // Define a root stack navigator
 const RootStack = createStackNavigator();
@@ -73,6 +75,10 @@ const RootNavigator = () => {
       <RootStack.Screen name="CheckoutScreen" component={CheckoutScreen} options={{ headerShown:false }}/>
       <RootStack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{ headerShown:false }} />
       <RootStack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="CodeVerificationScreen" component={CodeVerificationScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="PromotionsScreen" component={PromotionsScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="SupportScreen" component={SupportScreen} options={{ headerShown:false }}/>
+      <RootStack.Screen name="AddDishScreen" component={AddDishScreen} options={{ headerShown: false }}/>
     </RootStack.Navigator>
   );
 };

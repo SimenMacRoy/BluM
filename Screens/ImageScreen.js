@@ -16,7 +16,7 @@ const ImageScreen = ({ route, navigation }) => {
                 FileSystem.documentDirectory + 'downloadedImage.jpg'
             );
             await MediaLibrary.saveToLibraryAsync(downloadResult.uri);
-            alert('Image downloaded successfully!');
+            alert('Image téléchargée');
         } catch (error) {
             console.error('Error downloading image:', error);
         }

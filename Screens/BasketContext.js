@@ -1,17 +1,49 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import UserContext from './UserContext';
 
 const BasketContext = createContext();
 
 export const BasketProvider = ({ children }) => {
+    const { currentUser } = useContext(UserContext);
     const [basketItems, setBasketItems] = useState([]);
+
+    useEffect(() => {
+        const loadBasket = async () => {
+            if (currentUser && currentUser.userID) {
+                try {
+                    const storedBasket = await AsyncStorage.getItem(`basketItems_${currentUser.userID}`);
+                    if (storedBasket) {
+                        setBasketItems(JSON.parse(storedBasket));
+                    } else {
+                        setBasketItems([]); // Reset the basket if no items found
+                    }
+                } catch (error) {
+                    console.error('Failed to load basket from storage:', error);
+                }
+            }
+        };
+
+        loadBasket();
+    }, [currentUser]);
+
+    const saveBasket = async (items) => {
+        if (currentUser && currentUser.userID) {
+            try {
+                await AsyncStorage.setItem(`basketItems_${currentUser.userID}`, JSON.stringify(items));
+            } catch (error) {
+                console.error('Failed to save basket to storage:', error);
+            }
+        }
+    };
 
     const addToBasket = (itemToAdd) => {
         setBasketItems(currentItems => {
             const existingItemIndex = currentItems.findIndex(item => item.id === itemToAdd.id);
+            let updatedItems;
             if (existingItemIndex >= 0) {
-                const updatedItems = [...currentItems];
+                updatedItems = [...currentItems];
                 const existingItem = updatedItems[existingItemIndex];
-                // Updating only the changed properties
                 const updatedItem = {
                     ...existingItem,
                     quantity: itemToAdd.quantity,
@@ -21,27 +53,25 @@ export const BasketProvider = ({ children }) => {
                     totalPrice: calculateTotalPrice(itemToAdd)
                 };
                 updatedItems[existingItemIndex] = updatedItem;
-                return updatedItems;
             } else {
                 itemToAdd.totalPrice = calculateTotalPrice(itemToAdd);
-                return [...currentItems, itemToAdd];
+                updatedItems = [...currentItems, itemToAdd];
             }
+            saveBasket(updatedItems); // Save updated basket to storage
+            return updatedItems;
         });
     };
 
     const calculateTotalPrice = (item) => {
-        // Check if the item and its price are valid
         if (!item || isNaN(item.price)) {
             console.error('Invalid item price:', item);
-            return 0; // Return 0 or some other default value indicating error
+            return 0;
         }
-    
+
         let totalPrice = item.price * item.quantity;
-    
-        // Check if specifications exist and are in an array
+
         if (item.specifications && Array.isArray(item.specifications)) {
             item.specifications.forEach(spec => {
-                // Check each specification for a valid price
                 if (spec && !isNaN(spec.price)) {
                     totalPrice += (spec.price / 10) * spec.quantity;
                 } else {
@@ -49,17 +79,31 @@ export const BasketProvider = ({ children }) => {
                 }
             });
         }
-    
-        return totalPrice.toFixed(2); // Format the total price to 2 decimal places
+
+        return parseFloat(totalPrice).toFixed(2); 
     };
-    
-    
-    const clearBasket = () => {
+
+    const removeFromBasket = (id) => {
+        setBasketItems(currentItems => {
+            const updatedItems = currentItems.filter(item => item.id !== id);
+            saveBasket(updatedItems); // Save updated basket to storage
+            return updatedItems;
+        });
+    };
+
+    const clearBasket = async () => {
         setBasketItems([]);
+        if (currentUser && currentUser.userID) {
+            try {
+                await AsyncStorage.removeItem(`basketItems_${currentUser.userID}`);
+            } catch (error) {
+                console.error('Failed to clear basket from storage:', error);
+            }
+        }
     };
 
     return (
-        <BasketContext.Provider value={{ basketItems, setBasketItems, addToBasket, clearBasket }}>
+        <BasketContext.Provider value={{ basketItems, setBasketItems, addToBasket, removeFromBasket, clearBasket }}>
             {children}
         </BasketContext.Provider>
     );

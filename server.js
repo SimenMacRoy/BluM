@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2');
+const { format } = require('date-fns');
 
 // Create an Express app
 const app = express();
@@ -92,6 +93,56 @@ app.post('/api/posts/publish', upload.single('media'), (req, res) => {
             return res.status(500).send('Error posting to the database');
         }
         res.status(201).send({ success: true, message: 'Post published successfully!' });
+    });
+});
+
+app.post('/api/dish', (req, res) => {
+    const {
+        title,
+        category,
+        description,
+        preparation,
+        recommendations,
+        portions,
+        difficulty,
+        image,
+        videoUrl,
+        price,
+        dishBlums,
+        countryFlag,
+        nutritiveFacts,
+        dishDisblums,
+    } = req.body;
+
+    const query = `
+        INSERT INTO DISHES (
+            title, category, description, preparation, recommendations, 
+            portions, difficulty, image, video_url, price, 
+            dish_blums, countryFlag, nutritiveFacts, dish_disblums
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(query, [
+        title,
+        category,
+        description,
+        preparation,
+        recommendations,
+        portions,
+        difficulty,
+        image,
+        videoUrl,
+        price,
+        dishBlums,
+        countryFlag,
+        nutritiveFacts,
+        dishDisblums,
+    ], (err, result) => {
+        if (err) {
+            console.error('Error inserting dish into database:', err);
+            return res.status(500).send({ success: false, message: 'Failed to add dish' });
+        }
+        res.send({ success: true, message: 'Dish added successfully!' });
     });
 });
 
@@ -266,6 +317,25 @@ app.post('/api/dishes/:dishId/comments', (req, res) => {
         };
 
         res.json(newComment);
+    });
+});
+
+app.get('/api/user/:userID/liked-dishes', (req, res) => {
+    const { userID } = req.params;
+
+    const sql = `
+        SELECT d.id, d.title, d.image, d.countryFlag, d.dish_blums
+        FROM DISHES d
+        JOIN USER_LIKES_DISLIKES uld ON d.id = uld.id
+        WHERE uld.userID = ? AND uld.liked = 1
+    `;
+
+    db.query(sql, [userID], (err, results) => {
+        if (err) {
+            console.error(`Failed to retrieve liked dishes for user with ID ${userID} from database:`, err);
+            return res.status(500).send('Error fetching liked dishes from the database');
+        }
+        res.json(results);
     });
 });
 
@@ -614,7 +684,7 @@ app.post('/api/login', (req, res) => {
         return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const query = 'SELECT userID, name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, password FROM USERS WHERE email = ?';
+    const query = 'SELECT userID, name, surname, email, phone_number, postal_address, country_of_origin, profile_picture, password, role FROM USERS WHERE email = ?';
     db.query(query, [email], async (err, results) => {
         if (err) {
             console.error('Database error:', err);
@@ -640,7 +710,8 @@ app.post('/api/login', (req, res) => {
                 phone_number: user.phone_number,
                 postal_address: user.postal_address,
                 country_of_origin: user.country_of_origin,
-                profile_picture: user.profile_picture
+                profile_picture: user.profile_picture,
+                role: user.role
             });
         } else {
             res.status(401).json({ error: 'Invalid Credentials' });
@@ -794,12 +865,18 @@ app.post('/api/users/:userID/update', async (req, res) => {
     }
 });
 app.get('/api/receipts', (req, res) => {
+    const { userID } = req.query; // Get userID from query parameters
+
+    if (!userID) {
+        return res.status(400).send({ error: 'User ID is required' });
+    }
+
     const query = `
         SELECT 
             c.commandId, 
             c.commandDateTime, 
             c.paymentType, 
-            c.amount, 
+            c.amountDetails, 
             c.commandDetails,
             u.name AS userName, 
             u.surname AS userSurname, 
@@ -811,17 +888,18 @@ app.get('/api/receipts', (req, res) => {
         FROM COMMANDS c
         JOIN USERS u ON c.userID = u.userID
         JOIN MEMBERS m ON c.memberID = m.memberID
+        WHERE c.userID = ?
     `;
 
-    db.query(query, (err, results) => {
+    db.query(query, [userID], (err, results) => {
         if (err) {
             console.error('Failed to fetch receipts: ' + err);
-            res.status(500).send('Failed to fetch receipts');
-            return;
+            return res.status(500).send({ error: 'Failed to fetch receipts' });
         }
         res.json(results);
     });
 });
+
 app.post('/api/surveys', (req, res) => {
     const { userID, question1, question2, question3, question4, question5 } = req.body;
     const sql = `INSERT INTO SURVEYS (userID, surveyDate, question1, question2, question3, question4, question5) 
@@ -837,132 +915,197 @@ app.post('/api/surveys', (req, res) => {
     });
 });
 
+
 app.post('/api/create-payment-intent', async (req, res) => {
-    const { amount } = req.body;
-    console.log('Request received for amount:', amount);
+    const { amount, name, surname, postalAddress, email, orderDetails, userID, memberID } = req.body;
 
     try {
+        console.log('Creating payment intent with amount:', amount);
+
+        // Create payment intent
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount,
+            amount,
             currency: 'usd',
         });
-        console.log('Payment Intent created:', paymentIntent.client_secret);
 
-        res.send({
-            clientSecret: paymentIntent.client_secret,
+        const clientSecret = paymentIntent.client_secret;
+        console.log('Payment intent created, client secret:', clientSecret);
+
+        // Store receipt in the database
+        const commandDateTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+        const paymentType = 'Card';
+        const amountDetails = JSON.stringify({
+            subtotal: (amount / 100).toFixed(2), // Assume the amount passed is in cents
+            deliveryFee: ((amount/100) * 0.3).toFixed(2), // Adjust accordingly
+            taxTPS: ((amount/100) * 0.05).toFixed(2), // Adjust accordingly
+            taxTVQ: ((amount/100) * 0.09975).toFixed(2), // Adjust accordingly
+            total: (((amount/100) * 0.3) + ((amount/100) * 0.05) + ((amount/100) * 0.09975) + (amount / 100)).toFixed(2) // Adjust accordingly
+        });
+        const commandDetails = orderDetails;
+
+        const query = `
+            INSERT INTO COMMANDS (commandDateTime, paymentType, amountDetails, commandDetails, userID, memberID)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+
+        db.query(query, [commandDateTime, paymentType, amountDetails, commandDetails, userID, memberID], (err, result) => {
+            if (err) {
+                console.error('Error inserting receipt into database:', err);
+                return res.status(500).send({ error: 'Failed to create receipt' });
+            }
+
+            const commandId = result.insertId;
+            console.log('Receipt stored in database with command ID:', commandId);
+
+            // Send confirmationemail
+            const mailOptions = {
+                from: 'macroysimen@gmail.com',
+                to: email,
+                subject: 'Order Confirmation',
+                text: `Order received from ${name} ${surname}.\n\nAddress: ${postalAddress}\n\nOrder Details:\n${orderDetails}\n\nEmail: ${email}`,
+            };
+
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error('Error sending email:', error);
+                    return res.status(400).send({ error: 'Failed to send confirmation email' });
+                }
+
+                console.log('Email sent:', info.response);
+
+                res.send({
+                    success: 'Payment intent created, receipt stored, and email sent successfully',
+                    clientSecret,
+                    commandId
+                });
+            });
         });
     } catch (error) {
         console.error('Error creating payment intent:', error);
         res.status(400).send({ error: error.message });
     }
 });
-app.post('/api/send-email', (req, res) => {
-    const { name, surname, postalAddress, email, orderDetails } = req.body;
+  // Endpoint to request a password reset
+  app.post('/api/request-reset-password', async (req, res) => {
+    const { email } = req.body;
+  
+    if (!email) {
+      return res.status(400).json({ success: false, error: 'email requis !' });
+    }
+  
+    const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
+    const resetTokenExpiration = Date.now() + 3600000; // 1 hour
+  
+    const query = 'UPDATE USERS SET resetCode = ?, resetTokenExpiration = ? WHERE email = ?';
+    db.query(query, [resetCode, resetTokenExpiration, email], (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ success: false, error: 'Internal Server Error' });
+      }
+  
+      if (result.affectedRows === 0) {
+        return res.status(400).json({ success: false, error: 'User not found' });
+      }
+  
+      sendResetCode(email, resetCode);
+      res.json({ success: true, message: 'Reset code sent to email' });
+    });
+  });
+  
+  // Endpoint to verify the reset code
+  app.post('/api/verify-reset-code', (req, res) => {
+    const { email, code } = req.body;
+  
+    if (!email || !code) {
+      return res.status(400).json({ success: false, error: 'Tout les champs sont réquis !' });
+    }
+  
+    const query = 'SELECT resetCode, resetTokenExpiration FROM USERS WHERE email = ? AND resetCode = ?';
+    db.query(query, [email, code], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ success: false, error: 'Internal Server Error' });
+      }
+  
+      if (results.length === 0 || results[0].resetTokenExpiration < Date.now()) {
+        return res.status(400).json({ success: false, error: 'Code invalide ou expiré' });
+      }
+  
+      const token = jwt.sign({ email }, 'your-secret-key', { expiresIn: '1h' });
+  
+      res.json({ success: true, token });
+    });
+  });
+  
+  // Endpoint to reset password
+  app.post('/api/reset-password', async (req, res) => {
+    const { token, password, confirmPassword } = req.body;
+
+    if (!token || !password || !confirmPassword) {
+        return res.status(400).json({ success: false, error: 'All fields are required' });
+    }
+
+    if (password !== confirmPassword) {
+        return res.status(400).json({ success: false, error: 'Les mots de passes ne correspondent pas' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'your-secret-key');
+        const email = decoded.email;
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const updateQuery = 'UPDATE USERS SET password = ?, resetCode = NULL, resetTokenExpiration = NULL WHERE email = ?';
+        db.query(updateQuery, [hashedPassword, email], (err) => {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ success: false, error: 'Internal Server Error' });
+            }
+
+            res.json({ success: true, message: 'Mot de passe modifié !' });
+        });
+    } catch (err) {
+        console.error('JWT error:', err);
+        return res.status(400).json({ success: false, error: 'Invalid or expired token' });
+    }
+});
+
+const sendResetCode = (email, resetCode) => {
     const mailOptions = {
-        from: 'macroysimen@gmail.com',
+        from: 'macroysimen@gmail.com', // replace with your email
         to: email,
-        subject: 'New Order',
-        text: `New order received from ${name} ${surname}.\n\nAddress: ${postalAddress}\n\nOrder Details:\n${orderDetails}\n\nEmail: ${email}`,
+        subject: 'Reset your password',
+        text: `Your password reset code is ${resetCode}. This code will expire in one hour.`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            return res.status(400).send({ error: error.message });
+            console.error('Error sending email:', error);
+        } else {
+            console.log('Email sent:', info.response);
         }
-        res.send({ success: 'Email sent successfully' });
+    });
+};
+
+app.post('/api/send-support-email', (req, res) => {
+    const { subject, message, email } = req.body;
+
+    const mailOptions = {
+        from: email,
+        to: 'macroysimen@gmail.com',
+        subject: subject,
+        text: message,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+            return res.status(500).send({ success: false, error: error.message });
+        }
+        res.send({ success: true });
     });
 });
 
-app.post('/api/request-reset-password', (req, res) => {
-    const { email } = req.body;
-  
-    if (!email) {
-      return res.status(400).send({ error: 'Email is required' });
-    }
-  
-    const query = 'SELECT userID FROM USERS WHERE email = ?';
-    db.query(query, [email], (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).send({ error: 'Internal Server Error' });
-      }
-  
-      if (results.length === 0) {
-        return res.status(404).send({ error: 'Email not found' });
-      }
-  
-      const userID = results[0].userID;
-      const token = crypto.randomBytes(32).toString('hex');
-      const expiration = Date.now() + 3600000; // Token expires in 1 hour
-  
-      const updateQuery = 'UPDATE USERS SET resetToken = ?, resetTokenExpiration = ? WHERE userID = ?';
-      db.query(updateQuery, [token, expiration, userID], (err) => {
-        if (err) {
-          console.error('Database error:', err);
-          return res.status(500).send({ error: 'Internal Server Error' });
-        }
-  
-        const resetUrl = `https://blumapp-rlsi1j69r-mac-roys-projects.vercel.app/reset-password.html?token=${token}`;
-        const mailOptions = {
-          from: 'macroysimen@gmail.com',
-          to: email,
-          subject: 'Password Reset',
-          html: `
-            <p>Click on the following link to reset your password:</p>
-            <a href="${resetUrl}">${resetUrl}</a>
-            <p>If the link does not work, copy and paste the following URL into your browser:</p>
-            <p>${resetUrl}</p>
-          `,
-        };
-  
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.log('Error sending email:', error);
-            return res.status(500).send({ error: 'Error sending email' });
-          }
-          console.log('Email sent:', info.response);
-          res.json({ success: true, message: 'Password reset email sent' });
-        });
-      });
-    });
-  });
-  
-  app.post('/api/reset-password', async (req, res) => {
-    const { token, password, confirmPassword } = req.body;
-  
-    if (!token || !password || !confirmPassword) {
-      return res.status(400).send({ error: 'All fields are required' });
-    }
-  
-    if (password !== confirmPassword) {
-      return res.status(400).send({ error: 'Passwords do not match' });
-    }
-  
-    const query = 'SELECT userID, resetTokenExpiration FROM USERS WHERE resetToken = ?';
-    db.query(query, [token], async (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).send({ error: 'Internal Server Error' });
-      }
-  
-      if (results.length === 0 || results[0].resetTokenExpiration < Date.now()) {
-        return res.status(400).send({ error: 'Invalid or expired token' });
-      }
-  
-      const userID = results[0].userID;
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
-      const updateQuery = 'UPDATE USERS SET password = ?, resetToken = NULL, resetTokenExpiration = NULL WHERE userID = ?';
-      db.query(updateQuery, [hashedPassword, userID], (err) => {
-        if (err) {
-          console.error('Database error:', err);
-          return res.status(500).send({ error: 'Internal Server Error' });
-        }
-  
-        res.json({ success: true, message: 'Password has been reset' });
-      });
-    });
-  });
 // Directly specify server port
 const port = 3006; // Replace with your desired port
 app.listen(port, () => {

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TextInput, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -10,7 +10,13 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const navigation = useNavigation();
-    const { loginUser } = useContext(UserContext);
+    const { currentUser, loginUser } = useContext(UserContext);
+
+    useEffect(() => {
+        if (currentUser) {
+            navigation.navigate('MainTabs');
+        }
+    }, [currentUser, navigation]);
 
     const handleLogin = async () => {
         try {
@@ -30,7 +36,8 @@ const LoginScreen = () => {
                     phone_number: data.phone_number,
                     postal_address: data.postal_address,
                     country_of_origin: data.country_of_origin,
-                    profile_picture: data.profile_picture
+                    profile_picture: data.profile_picture,
+                    role: data.role,
                 });
                 navigation.navigate('MainTabs');
             } else {

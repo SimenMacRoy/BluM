@@ -1,311 +1,253 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
-import { useStripe } from '@stripe/stripe-react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { CardField, useStripe } from '@stripe/stripe-react-native';
 import BasketContext from './BasketContext';
+import UserContext from './UserContext';
 import Header from './Header';
-import { FontAwesome } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CheckoutScreen = () => {
-    const { basketItems, clearBasket } = useContext(BasketContext);
-    const { confirmPayment } = useStripe();
-    const [name, setName] = useState('');
-    const [surname, setSurname] = useState('');
-    const [line1, setLine1] = useState('');
-    const [line2, setLine2] = useState('');
-    const [addressName, setAddressName] = useState('');
-    const [city, setCity] = useState('');
-    const [province, setProvince] = useState('');
-    const [postalCode, setPostalCode] = useState('');
-    const [email, setEmail] = useState('');
-    const [cardNumber, setCardNumber] = useState('');
-    const [expirationDate, setExpirationDate] = useState('');
-    const [cvv, setCvv] = useState('');
-    const [suggestions, setSuggestions] = useState([]);
+  const { basketItems, clearBasket } = useContext(BasketContext);
+  const { currentUser } = useContext(UserContext);
+  const { confirmPayment } = useStripe();
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [email, setEmail] = useState('');
+  const [line1, setLine1] = useState('');
+  const [line2, setLine2] = useState('');
+  const [addressName, setAddressName] = useState('');
+  const [city, setCity] = useState('');
+  const [province, setProvince] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [cardDetails, setCardDetails] = useState({});
 
-    const subtotal = basketItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const deliveryFee = subtotal * 0.3;
-    const taxTPS = subtotal * 0.05;
-    const taxTVQ = subtotal * 0.09975;
-    const total = subtotal + deliveryFee + taxTPS + taxTVQ;
-
-    const fetchAddressSuggestions = (query) => {
-        const addressList = ['123 Main St, Springfield', '456 Elm St, Shelbyville', '789 Maple Ave, Capital City'];
-        if (query) {
-            const filteredSuggestions = addressList.filter((address) => address.toLowerCase().includes(query.toLowerCase()));
-            setSuggestions(filteredSuggestions);
-        } else {
-            setSuggestions([]);
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      try {
+        const storedUserInfo = await AsyncStorage.getItem(`userInfo_${currentUser.userID}`);
+        if (storedUserInfo) {
+          const { name, surname, email, line1, line2, addressName, city, province, postalCode } = JSON.parse(storedUserInfo);
+          setName(name || '');
+          setSurname(surname || '');
+          setEmail(email || '');
+          setLine1(line1 || '');
+          setLine2(line2 || '');
+          setAddressName(addressName || '');
+          setCity(city || '');
+          setProvince(province || '');
+          setPostalCode(postalCode || '');
         }
+      } catch (error) {
+        console.error('Failed to load user info from storage:', error);
+      }
     };
 
-    const formatCardNumber = (number) => {
-        return number.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim();
-    };
+    loadUserInfo();
+  }, [currentUser]);
 
-    const handleCardNumberChange = (text) => {
-        setCardNumber(formatCardNumber(text));
-    };
+  const saveUserInfo = async () => {
+    try {
+      const userInfo = { name, surname, email, line1, line2, addressName, city, province, postalCode };
+      await AsyncStorage.setItem(`userInfo_${currentUser.userID}`, JSON.stringify(userInfo));
+    } catch (error) {
+      console.error('Failed to save user info to storage:', error);
+    }
+  };
 
-    const handleExpirationDateChange = (text) => {
-        if (text.length === 2 && !text.includes('/')) {
-            setExpirationDate(text + '/');
-        } else {
-            setExpirationDate(text);
-        }
-    };
+  useEffect(() => {
+    saveUserInfo();
+  }, [name, surname, email, line1, line2, addressName, city, province, postalCode]);
 
-    const handlePayment = async () => {
-        try {
-            const response = await fetch('http://192.168.69.205:3006/api/create-payment-intent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: total * 100 }), // amount in cents
-            });
+  const subtotal = basketItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const deliveryFee = subtotal * 0.3;
+  const taxTPS = subtotal * 0.05;
+  const taxTVQ = subtotal * 0.09975;
+  const total = subtotal + deliveryFee + taxTPS + taxTVQ;
 
-            const { clientSecret } = await response.json();
+  const handlePayment = async () => {
+    console.log('Card details:', cardDetails);
 
-            if (!clientSecret) {
-                throw new Error('Failed to fetch client secret');
-            }
+    if (!cardDetails.complete) {
+      Alert.alert('Payment error', 'Please fill in your card details completely.');
+      return;
+    }
 
-            const { error, paymentIntent } = await confirmPayment(clientSecret, {
-                type: 'Card',
-                billingDetails: {
-                    name: `${name} ${surname}`,
-                    email: email,
-                    address: {
-                        line1: `${line1}, ${line2}, ${addressName}, ${city}, ${province}, ${postalCode}`,
-                    },
-                },
-            });
+    try {
+      const response = await fetch('http://192.168.69.205:3006/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: Math.round(total * 100), // amount in cents
+          name,
+          surname,
+          postalAddress: `${line1}, ${line2}, ${addressName}, ${city}, ${province}, ${postalCode}`,
+          email,
+          orderDetails: JSON.stringify(basketItems),
+          userID: currentUser.userID, // Replace with actual user ID
+          memberID: 20000 // Replace with actual member ID
+        }),
+      });
 
-            if (error) {
-                Alert.alert('Payment failed', error.message);
-            } else if (paymentIntent) {
-                await fetch('http://192.168.69.205:3006/api/send-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name,
-                        surname,
-                        postalAddress: `${line1}, ${line2}, ${addressName}, ${city}, ${province}, ${postalCode}`,
-                        email,
-                        orderDetails: JSON.stringify(basketItems),
-                    }),
-                });
-                Alert.alert('Payment successful', 'Your order has been placed.');
-                clearBasket();
-            }
-        } catch (error) {
-            Alert.alert('Payment error', error.message);
-        }
-    };
+      if (!response.ok) {
+        throw new Error('Failed to create payment intent');
+      }
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity onPress={() => {
-            setPostalAddress(item);
-            setSuggestions([]);
-        }}>
-            <Text style={styles.suggestionText}>{item}</Text>
-        </TouchableOpacity>
-    );
+      const { clientSecret } = await response.json();
 
-    const data = [
-        { key: 'header', render: () => <Header /> },
-        { key: 'infoHeader', render: () => <Text style={styles.infoHeader}>Entrez vos informations</Text> },
-        {
-            key: 'userInfoSection', render: () => (
-                <View style={styles.userInfoSection}>
-                    <Text style={styles.label}>Nom</Text>
-                    <TextInput style={styles.input} onChangeText={setName} value={name} placeholder="Nom" />
-                    <Text style={styles.label}>Prénom</Text>
-                    <TextInput style={styles.input} onChangeText={setSurname} value={surname} placeholder="Prénom" />
-                    <Text style={styles.label}>Adresse Postale</Text>
-                    <Text style={styles.label}>Ligne 1</Text>
-                    <TextInput style={styles.input} onChangeText={setLine1} value={line1} placeholder="Ligne 1" />
-                    <Text style={styles.label}>Ligne 2(facultatif)</Text>
-                    <TextInput style={styles.input} onChangeText={setLine2} value={line2} placeholder="Ligne 2" />
-                    <Text style={styles.label}>Nom de l'adresse</Text>
-                    <TextInput style={styles.input} onChangeText={setAddressName} value={addressName} placeholder="Nom de l'adresse" />
-                    <Text style={styles.label}>Ville</Text>
-                    <TextInput style={styles.input} onChangeText={setCity} value={city} placeholder="Ville" />
-                    <Text style={styles.label}>Province</Text>
-                    <TextInput style={styles.input} onChangeText={setProvince} value={province} placeholder="Province" />
-                    <Text style={styles.label}>Code postal</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={(text) => {
-                            setPostalCode(text);
-                            fetchAddressSuggestions(text);
-                        }}
-                        value={postalCode}
-                        placeholder="Code postal"
-                    />
-                    {suggestions.length > 0 && (
-                        <FlatList
-                            data={suggestions}
-                            keyExtractor={(item) => item}
-                            renderItem={renderItem}
-                            style={styles.autocompleteContainer}
-                        />
-                    )}
-                    <Text style={styles.label}>Email</Text>
-                    <TextInput style={styles.input} onChangeText={setEmail} value={email} placeholder="Email" keyboardType="email-address" />
-                    <Text style={styles.label}>Numéro de carte</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={handleCardNumberChange}
-                        value={cardNumber}
-                        placeholder="Numéro de carte"
-                        keyboardType="numeric"
-                        maxLength={19}
-                    />
-                    <Text style={styles.label}>Date d'expiration (MM/AA)</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={handleExpirationDateChange}
-                        value={expirationDate}
-                        placeholder="Date d'expiration (MM/AA)"
-                        keyboardType="numeric"
-                        maxLength={5}
-                    />
-                    <Text style={styles.label}>CVV</Text>
-                    <View style={styles.cvvContainer}>
-                        <TextInput
-                            style={styles.inputCvv}
-                            onChangeText={setCvv}
-                            value={cvv}
-                            placeholder="CVV"
-                            keyboardType="numeric"
-                            maxLength={3}
-                            secureTextEntry
-                        />
-                        <FontAwesome name="lock" size={24} color="black" style={styles.cvvIcon} />
-                    </View>
-                </View>
-            )
+      if (!clientSecret) {
+        throw new Error('Failed to fetch client secret');
+      }
+
+      const { error, paymentIntent } = await confirmPayment(clientSecret, {
+        paymentMethodType: 'Card',
+        paymentMethodData: {
+          billingDetails: {
+            name: `${name} ${surname}`,
+            email: email,
+            address: {
+              line1: line1,
+              line2: line2,
+              city: city,
+              state: province,
+              postalCode: postalCode,
+            },
+          },
         },
-        {
-            key: 'orderSummarySection', render: () => (
-                <View style={styles.orderSummarySection}>
-                    <Text style={styles.sommaireText}>Sommaire</Text>
-                    <Text style={styles.summaryText}>Sub-total: ${subtotal.toFixed(2)}</Text>
-                    <Text style={styles.summaryText}>Frais de livraison: ${deliveryFee.toFixed(2)}</Text>
-                    <Text style={styles.summaryText}>Taxe (TPS): ${taxTPS.toFixed(2)}</Text>
-                    <Text style={styles.summaryText}>Taxe (TVQ): ${taxTVQ.toFixed(2)}</Text>
-                    <Text style={styles.totalText}>Total: ${total.toFixed(2)}</Text>
-                </View>
-            )
-        },
-        {
-            key: 'payButton', render: () => (
-                <TouchableOpacity style={styles.payButton} onPress={handlePayment}>
-                    <Text style={styles.payButtonText}>Payer</Text>
-                </TouchableOpacity>
-            )
-        }
-    ];
+      });
 
-    return (
-        <FlatList
-            data={data}
-            renderItem={({ item }) => item.render()}
-            keyExtractor={(item) => item.key}
-        />
-    );
+      if (error) {
+        Alert.alert('Payment failed', error.message);
+      } else if (paymentIntent) {
+        // Payment succeeded, handle receipt and email
+        Alert.alert('Payment successful', 'Your order has been placed.');
+        clearBasket(); // Clear the basket after successful payment
+      }
+    } catch (error) {
+      Alert.alert('Payment error', error.message);
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <Header />
+      <Text style={styles.infoHeader}>Entrez vos informations</Text>
+      <View style={styles.userInfoSection}>
+        <Text style={styles.label}>Nom</Text>
+        <TextInput style={styles.input} onChangeText={setName} value={name} placeholder="Nom" />
+        <Text style={styles.label}>Prénom</Text>
+        <TextInput style={styles.input} onChangeText={setSurname} value={surname} placeholder="Prénom" />
+        <Text style={styles.label}>Email</Text>
+        <TextInput style={styles.input} onChangeText={setEmail} value={email} placeholder="Email" keyboardType="email-address" />
+        <Text style={styles.label}>Adresse Ligne 1</Text>
+        <TextInput style={styles.input} onChangeText={setLine1} value={line1} placeholder="Adresse Ligne 1" />
+        <Text style={styles.label}>Adresse Ligne 2 (optionnelle)</Text>
+        <TextInput style={styles.input} onChangeText={setLine2} value={line2} placeholder="Adresse Ligne 2" />
+        <Text style={styles.label}>Nom de l'adresse</Text>
+        <TextInput style={styles.input} onChangeText={setAddressName} value={addressName} placeholder="Nom de l'adresse" />
+        <Text style={styles.label}>Ville</Text>
+        <TextInput style={styles.input} onChangeText={setCity} value={city} placeholder="Ville" />
+        <Text style={styles.label}>Province</Text>
+        <TextInput style={styles.input} onChangeText={setProvince} value={province} placeholder="Province" />
+        <Text style={styles.label}>Code Postal</Text>
+        <TextInput style={styles.input} onChangeText={setPostalCode} value={postalCode} placeholder="Code Postal" />
+      </View>
+      <CardField
+        postalCodeEnabled={true}
+        placeholder={{
+          number: '1234 1234 1234 1234',
+        }}
+        cardStyle={styles.cardField}
+        style={styles.cardContainer}
+        onCardChange={(cardDetails) => {
+          setCardDetails(cardDetails);
+        }}
+      />
+      <View style={styles.orderSummarySection}>
+        <Text style={styles.sommaireText}>Sommaire</Text>
+        <Text style={styles.summaryText}>Sub-total: ${subtotal.toFixed(2)}</Text>
+        <Text style={styles.summaryText}>Frais de livraison: ${deliveryFee.toFixed(2)}</Text>
+        <Text style={styles.summaryText}>Taxe (TPS): ${taxTPS.toFixed(2)}</Text>
+        <Text style={styles.summaryText}>Taxe (TVQ): ${taxTVQ.toFixed(2)}</Text>
+        <Text style={styles.totalText}>Total: ${total.toFixed(2)}</Text>
+      </View>
+      <TouchableOpacity style={styles.payButton} onPress={handlePayment}>
+        <Text style={styles.payButtonText}>Payer</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    infoHeader: {
-        fontSize: 20,
-        fontFamily: 'Ebrima',
-        justifyContent: 'center',
-        padding: 5,
-        margin: 10,
-    },
-    userInfoSection: {
-        padding: 20,
-        paddingBottom: 5,
-    },
-    orderSummarySection: {
-        marginBottom: 10,
-        padding: 20,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 5,
-        fontFamily: 'Ebrima',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: 'gray',
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 5,
-        fontFamily: 'Ebrima',
-    },
-    inputCvv: {
-        borderWidth: 1,
-        borderColor: 'gray',
-        padding: 10,
-        borderRadius: 5,
-        fontFamily: 'Ebrima',
-        flex: 1,
-    },
-    autocompleteContainer: {
-        position: 'absolute',
-        top: 60,
-        left: 0,
-        right: 0,
-        zIndex: 1,
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: 'gray',
-    },
-    suggestionText: {
-        padding: 10,
-        fontSize: 16,
-        borderBottomWidth: 1,
-        borderColor: 'gray',
-        fontFamily: 'Ebrima',
-    },
-    summaryText: {
-        fontSize: 16,
-        marginBottom: 5,
-        fontFamily: 'Ebrima',
-    },
-    totalText: {
-        fontSize: 18,
-        marginTop: 10,
-        fontFamily: 'Ebrima',
-    },
-    sommaireText: {
-        fontSize: 20,
-        marginBottom: 10,
-        fontFamily: 'Ebrimabd',
-    },
-    payButton: {
-        backgroundColor: 'blue',
-        padding: 15,
-        margin: 20,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    payButtonText: {
-        color: 'white',
-        fontSize: 18,
-        fontFamily: 'Ebrima',
-    },
-    cvvContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    cvvIcon: {
-        marginLeft: 10,
-    },
+  container: {
+    flex: 1,
+  },
+  infoHeader: {
+    fontSize: 20,
+    fontFamily: 'Ebrima',
+    justifyContent: 'center',
+    padding: 5,
+    margin: 10,
+  },
+  userInfoSection: {
+    padding: 20,
+    paddingBottom: 5,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    fontFamily: 'Ebrima',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+    fontFamily: 'Ebrima',
+  },
+  orderSummarySection: {
+    marginBottom: 10,
+    padding: 20,
+  },
+  summaryText: {
+    fontSize: 16,
+    marginBottom: 5,
+    fontFamily: 'Ebrima',
+  },
+  totalText: {
+    fontSize: 20,
+    marginTop: 10,
+    fontFamily: 'Ebrimabd',
+  },
+  sommaireText: {
+    fontSize: 20,
+    marginBottom: 10,
+    fontFamily: 'Ebrimabd',
+  },
+  payButton: {
+    backgroundColor: '#15FCFC',
+    padding: 15,
+    margin: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  payButtonText: {
+    color: 'black',
+    fontSize: 18,
+    fontFamily: 'Ebrimabd',
+  },
+  cardContainer: {
+    height: 50,
+    marginVertical: 30,
+    marginHorizontal: 20,
+  },
+  cardField: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
+    fontFamily: 'Ebrima',
+  },
 });
 
 export default CheckoutScreen;
