@@ -3,7 +3,8 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, FlatList, ActivityIndi
 import Header from './Header'; // Adjust the path as necessary
 import SearchBar from './SearchBar'; // Adjust the path as necessary
 import SearchResults from './SearchResults';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { useNavigation } from '@react-navigation/native';
+import config from '../config'; // Import useNavigation
 
 const EuropeanDishesScreen = () => {
     const navigation = useNavigation(); // Initialize navigation
@@ -17,7 +18,7 @@ const EuropeanDishesScreen = () => {
         // Fetch Asian dishes from backend
         const fetchEuropeanDishes = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/dish/Europeans');
+                const response = await fetch(`${config.apiBaseUrl}/dish/Europeans`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch European dishes');
                 }

@@ -3,6 +3,7 @@ import { ScrollView, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator
 import { FontAwesome } from '@expo/vector-icons';
 import BasketContext from './BasketContext';
 import DateTimeSelector from '../utils/DateTimeSelector';
+import config from '../config';
 
 const IngredientsTab = ({ route }) => {
     const { dish } = route.params;
@@ -20,7 +21,7 @@ const IngredientsTab = ({ route }) => {
     useEffect(() => {
         const fetchIngredients = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`);
+                const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/ingredients`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

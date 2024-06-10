@@ -25,7 +25,7 @@ const SearchResults = ({ results, onResultPress }) => {
                     <View style={styles.resultContent}>
                         <Image source={{ uri: result.image }} style={styles.image} />
                         <Text style={styles.title}>{result.title}</Text>
-                        <Text style={styles.price}>${result.price}</Text>
+                        <Text style={styles.price}>${result.id}</Text>
                     </View>
                 </TouchableOpacity>
             ))}

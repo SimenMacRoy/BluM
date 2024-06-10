@@ -4,7 +4,8 @@ import * as Print from 'expo-print';
 import { shareAsync } from 'expo-sharing';
 import Header from './Header';
 import BasketContext from './BasketContext';
-import UserContext from './UserContext'; // Import UserContext
+import UserContext from './UserContext'; 
+import config from '../config';// Import UserContext
 
 const ReceiptScreen = () => {
     const { basketItems } = useContext(BasketContext);
@@ -23,7 +24,7 @@ const ReceiptScreen = () => {
         }
 
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/receipts?userID=${currentUser.userID}`); // Pass userID as query parameter
+            const response = await fetch(`${config.apiBaseUrl}/receipts?userID=${currentUser.userID}`); // Pass userID as query parameter
             const data = await response.json();
             setReceipts(data);
         } catch (error) {

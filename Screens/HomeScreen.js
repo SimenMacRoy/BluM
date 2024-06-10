@@ -9,6 +9,7 @@ import ShareButton from './ShareButton';
 import { Video, ResizeMode } from 'expo-av';
 import SearchResults from './SearchResults';
 import UserContext from './UserContext';
+import config from '../config';
 
 const HomeScreen = ({ navigation }) => {
     const video = React.useRef(null);
@@ -25,7 +26,7 @@ const HomeScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/posts'); // Update with your backend URL
+                const response = await fetch(`${config.apiBaseUrl}/posts`); // Update with your backend URL
                 const data = await response.json();
                 setPosts(data);
                 setLoading(false);
@@ -44,7 +45,7 @@ const HomeScreen = ({ navigation }) => {
         setLikedPosts((prev) => ({ ...prev, [post.postID]: liked }));
 
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/posts/${post.postID}/toggle-like`, {
+            const response = await fetch(`${config.apiBaseUrl}/posts/${post.postID}/toggle-like`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ liked })
@@ -66,7 +67,7 @@ const HomeScreen = ({ navigation }) => {
         setStarredPosts((prev) => ({ ...prev, [post.postID]: starred }));
 
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/posts/${post.postID}/toggle-star`, {
+            const response = await fetch(`${config.apiBaseUrl}/posts/${post.postID}/toggle-star`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ starred })

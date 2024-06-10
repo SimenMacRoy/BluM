@@ -3,7 +3,8 @@ import { View, Text, Image, StyleSheet, ScrollView, TextInput, Pressable, Alert 
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { validateEmail } from '../utils/validateEmail';
-import UserContext from './UserContext'; // Adjust the path as necessary
+import UserContext from './UserContext';
+import config from '../config'; // Adjust the path as necessary
 
 const LoginScreen = () => {
     const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const LoginScreen = () => {
 
     const handleLogin = async () => {
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/login', {
+            const response = await fetch(`${config.apiBaseUrl}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

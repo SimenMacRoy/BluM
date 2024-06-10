@@ -4,6 +4,7 @@ import Header from './Header';
 import SearchBar from './SearchBar'; // Ensure this path is correct
 import SearchResults from './SearchResults'; // Ensure this path is correct
 import ingredients from '../ingredients.json';
+import config from '../config';
 
 const FruitScreen = ({ navigation }) => {
     const [searchResults, setSearchResults] = useState([]);

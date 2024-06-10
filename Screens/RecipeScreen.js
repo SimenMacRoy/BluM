@@ -5,6 +5,7 @@ import SearchResults from './SearchResults';
 import Header from './Header';
 import SearchBar from './SearchBar';
 import { useNavigation } from '@react-navigation/core';
+import config from '../config'; 
 
 const RecipeScreen = () => {
     const [dishes, setDishes] = useState([]);
@@ -36,7 +37,7 @@ const RecipeScreen = () => {
 
     const fetchDishes = async () => {
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/dishes'); // Adjust URL to your backend
+            const response = await fetch(`${config.apiBaseUrl}/dishes`); // Adjust URL to your backend
             const data = await response.json();
             setDishes(data);
         } catch (error) {

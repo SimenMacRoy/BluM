@@ -8,6 +8,7 @@ import MealTab from './MealTab';
 import IngredientsTab from './IngredientsTab';
 import RecipeTab from './RecipeTab';
 import { useNavigation } from '@react-navigation/native';
+import config from '../config';
 
 const RecipeScreenDetail = ({ route }) => {
     const { dishId, item, updateBasketItem, itemToUpdate } = route.params || {};
@@ -22,7 +23,7 @@ const RecipeScreenDetail = ({ route }) => {
         // Fetch data from backend
         const fetchDish = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dishId}`); // Update with actual URL
+                const response = await fetch(`${config.apiBaseUrl}/dishes/${dishId}`); // Update with actual URL
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }

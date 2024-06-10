@@ -4,7 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import UserContext from './UserContext'; // Adjust the path if necessary
 import { FontAwesome } from '@expo/vector-icons';
 import ModalDropdown from 'react-native-modal-dropdown'; // Import ModalDropdown component
-import countries from '../countries.json'; // Import the countries data
+import countries from '../countries.json';
+import config from '../config'; // Import the countries data
 
 const EditProfileScreen = ({ navigation }) => {
     const { currentUser, setCurrentUser } = useContext(UserContext);
@@ -71,7 +72,7 @@ const EditProfileScreen = ({ navigation }) => {
         }
 
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/users/${currentUser.userID}/update`, {
+            const response = await fetch(`${config.apiBaseUrl}/users/${currentUser.userID}/update`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

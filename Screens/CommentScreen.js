@@ -1,7 +1,8 @@
 // CommentScreen.js
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, ActivityIndicator, TextInput, Button, Alert } from 'react-native';
-import UserContext from './UserContext'; // Adjust the path as necessary
+import UserContext from './UserContext'; 
+import config from '../config';// Adjust the path as necessary
 
 const CommentScreen = ({ route }) => {
     const { postId } = route.params;
@@ -38,7 +39,7 @@ const CommentScreen = ({ route }) => {
         }
 
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/posts/${postId}/comments`, {
+            const response = await fetch(`${config.apiBaseUrl}/posts/${postId}/comments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: currentUser.userID, comment_text: commentText })

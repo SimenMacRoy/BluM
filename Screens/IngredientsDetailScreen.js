@@ -7,6 +7,7 @@ import BasketContext from './BasketContext';
 import DateTimeSelector from '../utils/DateTimeSelector';
 import { useNavigation } from '@react-navigation/native';
 import ImageScreen from './ImageScreen';
+import config from '../config';
 
 const IngredientsDetailScreen = ({ route }) => {
     const { ingredientId } = route.params;
@@ -46,7 +47,7 @@ const IngredientsDetailScreen = ({ route }) => {
     useEffect(() => {
         const fetchIngredient = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/ingredients/${ingredientId}`);
+                const response = await fetch(`${config.apiBaseUrl}/ingredients/${ingredientId}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch ingredient');
                 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import config from '../config';
 
 const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que voulez-vous cuisiner ?", searchType }) => {
     const [focused, setFocused] = useState(false);
@@ -17,11 +18,11 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
     const fetchResults = async (query) => {
         let apiEndpoint = '';
         if (searchType === 'foods') {
-            apiEndpoint = `http://192.168.69.205:3006/api/search/foods?query=${query}`;
+            apiEndpoint = `${config.apiBaseUrl}/search/foods?query=${query}`;
         } else if (searchType === 'ingredients') {
-            apiEndpoint = `http://192.168.69.205:3006/api/search/ingredients?query=${query}`;
+            apiEndpoint = `${config.apiBaseUrl}/search/ingredients?query=${query}`;
         } else {
-            apiEndpoint = `http://192.168.69.205:3006/api/search/${searchType}?query=${query}`;
+            apiEndpoint = `${config.apiBaseUrl}/search/${searchType}?query=${query}`;
         }
         try {
             const response = await fetch(apiEndpoint);

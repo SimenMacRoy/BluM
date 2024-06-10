@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndi
 import Header from './Header';
 import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
+import config from '../config';
 
 const ProdEnConservesScreen = ({ navigation }) => {
     const [searchResults, setSearchResults] = useState([]);
@@ -14,7 +15,7 @@ const ProdEnConservesScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchProdEnConserves = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/ingredient/ProdEnConserves');
+                const response = await fetch(`${config.apiBaseUrl}/ingredient/ProdEnConserves`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch products in conserves');
                 }

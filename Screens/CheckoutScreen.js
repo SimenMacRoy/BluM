@@ -5,6 +5,7 @@ import BasketContext from './BasketContext';
 import UserContext from './UserContext';
 import Header from './Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from '../config';
 
 const CheckoutScreen = () => {
   const { basketItems, clearBasket } = useContext(BasketContext);
@@ -73,7 +74,7 @@ const CheckoutScreen = () => {
     }
 
     try {
-      const response = await fetch('http://192.168.69.205:3006/api/create-payment-intent', {
+      const response = await fetch(`${config.apiBaseUrl}/create-payment-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

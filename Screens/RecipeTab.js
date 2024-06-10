@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, Linking, TouchableOpacity, TextInput, Button, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import UserContext from './UserContext';
+import config from '../config';
 
 const RecipeTab = ({ route }) => {
     const { dish } = route.params;
@@ -19,7 +20,7 @@ const RecipeTab = ({ route }) => {
     useEffect(() => {
         const fetchIngredients = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`);
+                const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/ingredients`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -33,7 +34,7 @@ const RecipeTab = ({ route }) => {
 
         const fetchComments = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/comment`);
+                const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/comment`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch comments');
                 }
@@ -47,7 +48,7 @@ const RecipeTab = ({ route }) => {
 
         const fetchLikesDislikes = async () => {
             try {
-                const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/likes_dislikes?userID=${currentUser.userID}`);
+                const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/likes_dislikes?userID=${currentUser.userID}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch likes/dislikes');
                 }
@@ -70,7 +71,7 @@ const RecipeTab = ({ route }) => {
 
     const handleAddComment = async () => {
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/comments`, {
+            const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -94,7 +95,7 @@ const RecipeTab = ({ route }) => {
 
     const handleLike = async () => {
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/like`, {
+            const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/like`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ const RecipeTab = ({ route }) => {
 
     const handleDislike = async () => {
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/dislike`, {
+            const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/dislike`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

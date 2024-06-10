@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, Pressable, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import config from '../config';
 
 const CodeVerificationScreen = ({ route }) => {
     const { email } = route.params;
@@ -23,7 +24,7 @@ const CodeVerificationScreen = ({ route }) => {
     const handleVerifyCode = async () => {
         const fullCode = code.join('');
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/verify-reset-code', {
+            const response = await fetch(`${config.apiBaseUrl}/verify-reset-code`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, code: fullCode })

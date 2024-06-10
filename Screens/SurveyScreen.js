@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import Header from './Header';
 import UserContext from './UserContext';
-
+import config from '../config';
 
 const SurveyScreen = () => {
     const { currentUser } = useContext(UserContext);
@@ -57,7 +57,7 @@ const SurveyScreen = () => {
 
     const handleSubmit = async () => {
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/surveys', {
+            const response = await fetch(`${config.apiBaseUrl}/surveys`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

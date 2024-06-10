@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
+import config from '../config';
 
 const ResetPasswordScreen = ({ route }) => {
     const { token } = route.params;
@@ -39,7 +40,7 @@ const ResetPasswordScreen = ({ route }) => {
         }
 
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/reset-password`, {
+            const response = await fetch(`${config.apiBaseUrl}/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, password, confirmPassword }),

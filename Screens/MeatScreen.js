@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndi
 import Header from './Header';
 import SearchBar from './SearchBar'; // Ensure this path is correct
 import SearchResults from './SearchResults'; // Ensure this path is correct
+import config from '../config';
 
 const MeatScreen = ({ navigation }) => {
     const [searchResults, setSearchResults] = useState([]);
@@ -15,7 +16,7 @@ const MeatScreen = ({ navigation }) => {
         // Fetch meats from backend
         const fetchMeats = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/ingredient/Viande');
+                const response = await fetch(`${config.apiBaseUrl}/ingredient/Viande`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch meats');
                 }

@@ -1,7 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import BasketContext from './BasketContext';
-import DateTimeSelector from '../utils/DateTimeSelector'; // Adjust the import path as necessary
+import DateTimeSelector from '../utils/DateTimeSelector'; 
+import config from '../config';
 
 const MealTab = ({ route }) => {
     const { dish, existingItem } = route.params;
@@ -23,7 +24,7 @@ const MealTab = ({ route }) => {
 
     const fetchIngredients = async () => {
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/dishes/${dish.id}/ingredients`);
+            const response = await fetch(`${config.apiBaseUrl}/dishes/${dish.id}/ingredients`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -106,7 +107,7 @@ const MealTab = ({ route }) => {
 
     return (
         <ScrollView style={styles.container}>
-            <View>
+            
                 <Text style={styles.subHeader}>Nombre de portion</Text>
                 <TextInput 
                     style={styles.input}
@@ -123,7 +124,7 @@ const MealTab = ({ route }) => {
                 />
 
                 <Text style={styles.subHeader}>Spécifications(+ ou - d'ingrédients)</Text>
-                <View style={styles.specificationsContainer}>
+                <ScrollView style={styles.specificationsContainer}>
                     {specifications.map((ingredient, index) => (
                         <View key={index} style={styles.ingredientItem}>
                             <Text style={styles.ingredientName}>{ingredient.title}</Text>
@@ -140,13 +141,14 @@ const MealTab = ({ route }) => {
                                 <Text style={styles.price}>${(parseFloat(ingredient.price) / 10).toFixed(2)}</Text>
                             </View>
                         </View>
+                        
                     ))}
-                </View>
 
-                <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
-                    <Text style={styles.buttonText}>{existingItem ? `Mettre à jour ($${totalPrice.toFixed(2)})` : `Ajouter au panier ($${totalPrice.toFixed(2)})`}</Text>
-                </TouchableOpacity>
-            </View>
+                    <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
+                        <Text style={styles.buttonText}>{existingItem ? `Mettre à jour ($${totalPrice.toFixed(2)})` : `Ajouter au panier ($${totalPrice.toFixed(2)})`}</Text>
+                    </TouchableOpacity>
+                </ScrollView>
+            
         </ScrollView>
     );
 };
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
     },
     specificationsContainer: {
-        maxHeight: 200,
+        maxHeight: 800,
     },
     ingredientItem: {
         flexDirection: 'row',
@@ -221,8 +223,7 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 10,
         alignItems: 'center',
-        marginTop: 20,
-        marginBottom: 30
+        marginBottom: 30,
     },
     buttonText: {
         fontSize: 18,

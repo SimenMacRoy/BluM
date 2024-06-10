@@ -4,6 +4,7 @@ import Header from './Header';
 import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
 import { useNavigation } from '@react-navigation/native';
+import config from '../config';
 
 const AfricanDishesScreen = () => {
     const navigation = useNavigation();
@@ -17,7 +18,7 @@ const AfricanDishesScreen = () => {
         // Fetch African dishes from backend
         const fetchAfricanDishes = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/dish/Africans');
+                const response = await fetch(`${config.apiBaseUrl}/dish/Africans`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch African dishes');
                 }

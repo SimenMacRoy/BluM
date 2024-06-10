@@ -3,7 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as Linking from 'expo-linking';
 import Header from './Header'; // Adjust the path if necessary
-import UserContext from './UserContext'; // Adjust the path if necessary
+import UserContext from './UserContext';
+import config from '../config';
 
 const SupportScreen = () => {
     const { currentUser: user } = useContext(UserContext);
@@ -18,7 +19,7 @@ const SupportScreen = () => {
         }
 
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/send-support-email', {
+            const response = await fetch(`${config.apiBaseUrl}/send-support-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ subject, message, email }),

@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import ModalDropdown from 'react-native-modal-dropdown'; 
 import countries from '../countries.json'; 
+import config from '../config';
 
 const RegistrationScreen = () => {
     const [name, setName] = useState('');
@@ -60,7 +61,7 @@ const RegistrationScreen = () => {
         };
 
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/register', {
+            const response = await fetch(`${config.apiBaseUrl}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData),

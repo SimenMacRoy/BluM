@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndi
 import Header from './Header';
 import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
+import config from '../config';
 
 const CondimentScreen = ({ navigation }) => {
     const [searchResults, setSearchResults] = useState([]);
@@ -14,7 +15,7 @@ const CondimentScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchCondiments = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/ingredient/Condiments');  // Ensure this URL is correct and the backend is set up for this endpoint
+                const response = await fetch(`${config.apiBaseUrl}/ingredient/Condiments`);  // Ensure this URL is correct and the backend is set up for this endpoint
                 if (!response.ok) {
                     throw new Error('Failed to fetch condiments');
                 }

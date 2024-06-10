@@ -4,6 +4,7 @@ import Header from './Header';
 import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
 import { useNavigation } from '@react-navigation/native';
+import config from '../config';
 
 const AmericanDishesScreen = () => {
     const navigation = useNavigation();
@@ -17,7 +18,7 @@ const AmericanDishesScreen = () => {
         // Fetch American dishes from backend
         const fetchAmericanDishes = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/dish/Americans');
+                const response = await fetch(`${config.apiBaseUrl}/dish/Americans`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch American dishes');
                 }

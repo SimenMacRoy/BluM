@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, SectionList } from 'react-native';
 import UserContext from './UserContext'; // Adjust the path if necessary
 import { FontAwesome } from '@expo/vector-icons';
+import config from '../config';
 
 const ProfileScreen = ({ navigation }) => {
     const { currentUser: user } = useContext(UserContext);
@@ -15,7 +16,7 @@ const ProfileScreen = ({ navigation }) => {
 
     const fetchLikedDishes = async (userID) => {
         try {
-            const response = await fetch(`http://192.168.69.205:3006/api/user/${userID}/liked-dishes`);
+            const response = await fetch(`${config.apiBaseUrl}/user/${userID}/liked-dishes`);
             const data = await response.json();
             setLikedDishes(data);
         } catch (error) {

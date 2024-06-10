@@ -3,6 +3,7 @@ import { View, Text, Button, TextInput, StyleSheet, Image, Alert, Platform } fro
 import * as ImagePicker from 'expo-image-picker';
 import UserContext from './UserContext'; // Adjust the path if necessary
 import { Video } from 'expo-av';
+import config from '../config';
 
 const PublishScreen = () => {
     const [media, setMedia] = useState(null);
@@ -33,7 +34,7 @@ const PublishScreen = () => {
         formData.append('description', description);
 
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/posts/publish', {
+            const response = await fetch(`${config.apiBaseUrl}/posts/publish`, {
                 method: 'POST',
                 body: formData,
                 headers: {

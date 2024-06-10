@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, Image } from 'react-native';
 import { Picker } from '@react-native-community/picker'; // Update the package import
 import * as ImagePicker from 'expo-image-picker';
-import Header from './Header'; // Ensure the path is correct
+import Header from './Header'; 
+import config from '../config';
 
 const AddDishScreen = ({ navigation }) => {
     const [title, setTitle] = useState('');
@@ -20,6 +21,7 @@ const AddDishScreen = ({ navigation }) => {
     const [nutritiveFacts, setNutritiveFacts] = useState('');
     const [dishDisblums, setDishDisblums] = useState('');
 
+
     const selectImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -35,7 +37,7 @@ const AddDishScreen = ({ navigation }) => {
 
     const handleAddDish = async () => {
         try {
-            const response = await fetch('http://192.168.69.205:3006/api/dish', {
+            const response = await fetch(`${config.apiBaseUrl}/dish`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

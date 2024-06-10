@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet, ActivityIndi
 import Header from './Header';
 import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
+import config from '../config';
 
 const SpiceScreen = ({ navigation }) => {
     const [searchResults, setSearchResults] = useState([]);
@@ -15,7 +16,7 @@ const SpiceScreen = ({ navigation }) => {
         // Fetch spices from backend
         const fetchSpices = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/ingredient/Epices');
+                const response = await fetch(`${config.apiBaseUrl}/ingredient/Epices`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch spices');
                 }

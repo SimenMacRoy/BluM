@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/core';
 import SearchResults from './SearchResults';
 import Header from './Header';
 import SearchBar from './SearchBar';
+import config from '../config';
 
 const IngredientsScreen = () => {
     const [ingredients, setIngredients] = useState([]);
@@ -18,7 +19,7 @@ const IngredientsScreen = () => {
         // Fetch ingredients from backend
         const fetchIngredients = async () => {
             try {
-                const response = await fetch('http://192.168.69.205:3006/api/ingredients');
+                const response = await fetch(`${config.apiBaseUrl}/ingredients`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch ingredients');
                 }
