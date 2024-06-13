@@ -174,9 +174,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Ebrimabd',
         alignSelf: 'center',
     },
-    specificationsContainer: {
-        maxHeight: 800,
-    },
     ingredientItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',

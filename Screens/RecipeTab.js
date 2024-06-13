@@ -316,6 +316,7 @@ const styles = StyleSheet.create({
         color: 'gray',
     },
     commentText: {
+        maxWidth: 275,
         fontSize: 16,
         fontFamily: 'Ebrima',
     },

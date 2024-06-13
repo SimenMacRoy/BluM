@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, SectionList } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from 'react-native';
 import UserContext from './UserContext'; // Adjust the path if necessary
 import { FontAwesome } from '@expo/vector-icons';
 import config from '../config';
@@ -70,25 +70,21 @@ const ProfileScreen = ({ navigation }) => {
         </TouchableOpacity>
     );
 
-    const sections = [
-        { title: '', data: [user], renderItem: renderProfileSection },
-        { title: 'Vos repas', data: likedDishes, renderItem: renderDishItem }
-    ];
-
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <FontAwesome name="arrow-left" size={30} color="#333" paddingTop={20} />
+                    <FontAwesome name="arrow-left" size={30} color="#333" />
                 </TouchableOpacity>
             </View>
-            <SectionList
-                sections={sections}
-                keyExtractor={(item, index) => `${item.title}-${index}`}
-                renderItem={({ item, section }) => section.renderItem({ item })}
-                renderSectionHeader={({ section: { title } }) => (
-                    <Text style={styles.sectionTitle}>{title}</Text>
-                )}
+            <FlatList
+                ListHeaderComponent={renderProfileSection}
+                data={likedDishes}
+                renderItem={renderDishItem}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={2}
+                contentContainerStyle={styles.dishesContainer}
+                columnWrapperStyle={styles.row}
             />
         </View>
     );
@@ -107,11 +103,6 @@ const styles = StyleSheet.create({
     },
     backButton: {
         marginRight: 10,
-    },
-    headerText: {
-        fontFamily: 'Ebrimabd',
-        fontSize: 20,
-        color: '#333',
     },
     loadingText: {
         fontSize: 18,
@@ -176,27 +167,18 @@ const styles = StyleSheet.create({
     boldText: {
         fontFamily: 'Ebrimabd',
     },
-    sectionTitle: {
-        fontSize: 20,
-        fontFamily: 'Ebrimabd',
-        color: '#333',
-        marginBottom: 10,
-        marginTop: 0,
-        alignSelf: 'center'
-    },
     row: {
         flex: 1,
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
+        marginBottom: 10,
     },
     dishCard: {
         backgroundColor: '#fff',
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
+        borderRadius: 10,
         padding: 10,
-        paddingTop: 0,
         margin: 5,
+        flex: 1,
         alignItems: 'center',
-        width: '45%',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -204,10 +186,9 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     dishImage: {
-        width: '112%',
+        width: '100%',
         height: 110,
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
+        borderRadius: 10,
         marginBottom: 5,
     },
     dishName: {
@@ -230,6 +211,9 @@ const styles = StyleSheet.create({
         color: '#666',
         marginLeft: 10,
     },
+    dishesContainer: {
+        paddingHorizontal: 10,
+    }
 });
 
 export default ProfileScreen;
