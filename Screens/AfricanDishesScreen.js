@@ -85,6 +85,7 @@ const AfricanDishesScreen = () => {
                         data={africanDishes}
                         keyExtractor={item => item.id.toString()}
                         renderItem={renderItem}
+                        contentContainerStyle={styles.listContainer}
                     />
                 </View>
             )}
@@ -115,6 +116,9 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginVertical: 10,
         fontFamily: 'Ebrimabd',
+    },
+    listContainer: {
+        paddingBottom: 200,
     },
 });
 
