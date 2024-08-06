@@ -4,10 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import config from '../config';
 
 const CodeVerificationScreen = ({ route }) => {
-    const { email } = route.params;
+    const { contact } = route.params; // Update to contact
     const [code, setCode] = useState(['', '', '', '', '']);
     const navigation = useNavigation();
-
     const inputRefs = useRef([]);
 
     const handleChangeText = (text, index) => {
@@ -27,7 +26,7 @@ const CodeVerificationScreen = ({ route }) => {
             const response = await fetch(`${config.apiBaseUrl}/verify-reset-code`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, code: fullCode })
+                body: JSON.stringify({ contact, code: fullCode }) // Update to contact
             });
 
             const data = await response.json();
@@ -45,7 +44,7 @@ const CodeVerificationScreen = ({ route }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Code de vérification</Text>
-            <Text style={styles.description}>Entrez le code de 5 chiffres envoyé par votre courriel {email}</Text>
+            <Text style={styles.description}>Entrez le code de 5 chiffres envoyé à {contact}</Text>
             <View style={styles.codeContainer}>
                 {code.map((digit, index) => (
                     <TextInput
@@ -94,7 +93,7 @@ const styles = StyleSheet.create({
     },
     inputBox: {
         width: 50,
-        height: 110,
+        height: 50,
         borderRadius: 10,
         borderColor: 'gray',
         borderWidth: 1,

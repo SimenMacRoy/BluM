@@ -15,8 +15,7 @@ const twilio = require('twilio');
 
 // Configure your Twilio client
 const twilioClient = twilio('ACd2a202df6a7bec7411f181e00870cd8a', '9ed94e6070fe4bb5f35115d3ebdae3e4');
-
-// Create an Express app
+const twilioPhoneNumber = 8197018694 ;
 const app = express();
 
 // Middleware
@@ -40,6 +39,17 @@ db.connect(err => {
         console.log('Connected to database as id', db.threadId);
     }
 });
+
+const sendResetCodeViaSMS = (phone_number, resetCode) => {
+    twilioClient.messages
+        .create({
+            body: `Your password reset code is: ${resetCode}`,
+            from: twilioPhoneNumber,
+            to: phone_number
+        })
+        .then(message => console.log(`SMS sent: ${message.sid}`))
+        .catch(error => console.error('Error sending SMS:', error));
+};
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -1049,55 +1059,66 @@ app.post('/api/create-payment-intent', async (req, res) => {
 });
   // Endpoint to request a password reset
   app.post('/api/request-reset-password', async (req, res) => {
-    const { email } = req.body;
+    const { contact } = req.body;
   
-    if (!email) {
-      return res.status(400).json({ success: false, error: 'email requis !' });
+    if (!contact) {
+        return res.status(400).json({ success: false, error: 'Email ou numéro de téléphone requis !' });
     }
-  
+
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const resetTokenExpiration = Date.now() + 3600000; // 1 hour
-  
-    const query = 'UPDATE USERS SET resetCode = ?, resetTokenExpiration = ? WHERE email = ?';
-    db.query(query, [resetCode, resetTokenExpiration, email], (err, result) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ success: false, error: 'Internal Server Error' });
-      }
-  
-      if (result.affectedRows === 0) {
-        return res.status(400).json({ success: false, error: 'User not found' });
-      }
-  
-      sendResetCode(email, resetCode);
-      res.json({ success: true, message: 'Reset code sent to email' });
+
+    // Check if the contact is an email or phone number
+    const isEmail = contact.includes('@');
+    const query = isEmail ? 
+        'UPDATE USERS SET resetCode = ?, resetTokenExpiration = ? WHERE email = ?' :
+        'UPDATE USERS SET resetCode = ?, resetTokenExpiration = ? WHERE phone_number = ?';
+
+    db.query(query, [resetCode, resetTokenExpiration, contact], (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ success: false, error: 'Erreur interne du serveur' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({ success: false, error: 'Utilisateur non trouvé' });
+        }
+
+        if (isEmail) {
+            sendResetCode(contact, resetCode); // Send reset code via email
+        } else {
+            sendResetCodeViaSMS(contact, resetCode); // Send reset code via SMS
+        }
+
+        res.json({ success: true, message: 'Code de réinitialisation envoyé' });
     });
-  });
-  
+});
+
   // Endpoint to verify the reset code
   app.post('/api/verify-reset-code', (req, res) => {
-    const { email, code } = req.body;
-  
-    if (!email || !code) {
-      return res.status(400).json({ success: false, error: 'Tout les champs sont réquis !' });
+    const { contact, code } = req.body;
+
+    if (!contact || !code) {
+        return res.status(400).json({ success: false, error: 'Tous les champs sont réquis !' });
     }
-  
-    const query = 'SELECT resetCode, resetTokenExpiration FROM USERS WHERE email = ? AND resetCode = ?';
-    db.query(query, [email, code], (err, results) => {
-      if (err) {
-        console.error('Database error:', err);
-        return res.status(500).json({ success: false, error: 'Internal Server Error' });
-      }
-  
-      if (results.length === 0 || results[0].resetTokenExpiration < Date.now()) {
-        return res.status(400).json({ success: false, error: 'Code invalide ou expiré' });
-      }
-  
-      const token = jwt.sign({ email }, 'your-secret-key', { expiresIn: '1h' });
-  
-      res.json({ success: true, token });
+
+    const query = 'SELECT resetCode, resetTokenExpiration FROM USERS WHERE (email = ? OR phone_number = ?) AND resetCode = ?';
+    db.query(query, [contact, contact, code], (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+        }
+
+        if (results.length === 0 || results[0].resetTokenExpiration < Date.now()) {
+            return res.status(400).json({ success: false, error: 'Code invalide ou expiré' });
+        }
+
+        const token = jwt.sign({ contact }, 'your-secret-key', { expiresIn: '1h' });
+
+        res.json({ success: true, token });
     });
-  });
+});
+
   
   // Endpoint to reset password
   app.post('/api/reset-password', async (req, res) => {

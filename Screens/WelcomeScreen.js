@@ -50,7 +50,7 @@ import LoginScreen from './LoginScreen';
 
       {/* Additional Welcome Text or Components */}
       <Text style={styles.welcomeText}>
-        Welcome to BluM!
+        Bienvenue sur BluM!
       </Text>
     </View>
   );

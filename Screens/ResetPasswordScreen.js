@@ -94,6 +94,7 @@ const ResetPasswordScreen = ({ route }) => {
             {renderHint(isNumber, 'Au moins un chiffre')}
             {renderHint(isSpecialChar, 'Au moins un caractère spécial')}
             {renderHint(isMinLength, 'Au moins 8 caractères')}
+            <Text> </Text>
             <Text style={styles.label}>Confirmer le mot de passe</Text>
             <TextInput
                 placeholder="Confirmez votre nouveau mot de passe"
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         marginBottom: 5,
-        fontFamily: 'Ebrima',
+        fontFamily: 'Ebrimabd',
     },
     input: {
         marginVertical: 10,

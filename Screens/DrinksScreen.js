@@ -15,7 +15,7 @@ const DrinksScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchDrinks = async () => {
             try {
-                const response = await fetch(`${config.apiBaseUrl}/ingredients/Boissons`);  // Make sure this URL matches your actual API endpoint
+                const response = await fetch(`${config.apiBaseUrl}/ingredient/Boissons`);  // Make sure this URL matches your actual API endpoint
                 if (!response.ok) {
                     throw new Error('Failed to fetch drinks');
                 }
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        fontFamily: 'Ebrimabd',
+        fontFamily: 'Ebrima',
     },
     bigTitle: {
         fontSize: 24,

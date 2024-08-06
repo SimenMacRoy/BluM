@@ -1,4 +1,3 @@
-// ForgotPasswordScreen.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, Alert, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -6,19 +5,27 @@ import config from '../config';
 
 const ForgotPasswordScreen = () => {
     const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const navigation = useNavigation();
 
     const handlePasswordReset = async () => {
+        const contact = email || phoneNumber;
+
+        if (!contact) {
+            Alert.alert('Erreur', 'Veuillez entrer un courriel ou un numéro de téléphone.');
+            return;
+        }
+
         try {
             const response = await fetch(`${config.apiBaseUrl}/request-reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ contact })
             });
 
             const data = await response.json();
             if (data.success) {
-                navigation.navigate('CodeVerificationScreen', { email });
+                navigation.navigate('CodeVerificationScreen', { contact });
             } else {
                 Alert.alert('Erreur', data.error);
             }
@@ -31,6 +38,7 @@ const ForgotPasswordScreen = () => {
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.title}>Mot de passe oublié</Text>
+
             <TextInput 
                 style={styles.inputText}
                 value={email}
@@ -38,6 +46,17 @@ const ForgotPasswordScreen = () => {
                 placeholder="Entrez votre courriel"
                 keyboardType="email-address"
             />
+            
+            <Text style={styles.orText}>OU</Text>
+
+            <TextInput 
+                style={styles.inputText}
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                placeholder="Entrez votre numéro de téléphone"
+                keyboardType="phone-pad"
+            />
+
             <Pressable 
                 style={styles.buttonReset}
                 onPress={handlePasswordReset}
@@ -71,6 +90,13 @@ const styles = StyleSheet.create({
         padding: 10,
         marginBottom: 20,
         fontFamily: 'Ebrima'
+    },
+    orText: {
+        fontSize: 18,
+        fontFamily: 'Ebrima',
+        textAlign: 'center',
+        marginTop: 30,
+        marginBottom: 40
     },
     buttonReset: {
         width: '100%',

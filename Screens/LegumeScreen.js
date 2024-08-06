@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        fontFamily: 'Ebrimabd',
+        fontFamily: 'Ebrima',
     },
     bigTitle: {
         fontSize: 24,
