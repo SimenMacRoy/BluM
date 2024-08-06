@@ -26,13 +26,12 @@
     "crypto": "^1.0.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
-    "expo": "~51.0.11",
     "expo-app-loading": "^2.1.1",
-    "expo-av": "~14.0.5",
-    "expo-font": "~12.0.7",
-    "expo-image-picker": "~15.0.5",
+    "expo-av": "~14.0.6",
+    "expo-font": "~12.0.9",
+    "expo-image-picker": "~15.0.7",
     "expo-linking": "~6.3.1",
-    "expo-media-library": "~16.0.3",
+    "expo-media-library": "~16.0.4",
     "expo-print": "~13.0.1",
     "expo-sharing": "~12.0.1",
     "expo-splash-screen": "^0.27.5",
@@ -43,7 +42,7 @@
     "mysql2": "^3.9.7",
     "nodemailer": "^6.9.13",
     "react": "18.2.0",
-    "react-native": "^0.74.2",
+    "react-native": "^0.74.3",
     "react-native-autocomplete-input": "^5.4.0",
     "react-native-datepicker": "^1.7.2",
     "react-native-gesture-handler": "~2.16.1",
@@ -52,16 +51,18 @@
     "react-native-modal-dropdown": "^1.0.2",
     "react-native-pager-view": "6.3.0",
     "react-native-permissions": "^4.1.5",
-    "react-native-safe-area-context": "^4.10.1",
+    "react-native-safe-area-context": "^4.10.5",
     "react-native-tab-view": "^3.5.2",
     "react-native-vector-icons": "^10.1.0",
     "react-native-video": "^5.2.1",
     "react-router": "^6.22.3",
     "stripe": "^15.7.0",
+    "twilio": "^5.2.2",
     "typescript": "~5.3.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "expo": "^51.0.24"
   },
   "private": true
 }

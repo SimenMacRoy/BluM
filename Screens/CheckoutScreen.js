@@ -21,6 +21,8 @@ const CheckoutScreen = () => {
   const [province, setProvince] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [cardDetails, setCardDetails] = useState({});
+  const [countdown, setCountdown] = useState(5);
+  const [showCountdown, setShowCountdown] = useState(false);
 
   useEffect(() => {
     const loadUserInfo = async () => {
@@ -65,6 +67,26 @@ const CheckoutScreen = () => {
   const taxTVQ = subtotal * 0.09975;
   const total = subtotal + deliveryFee + taxTPS + taxTVQ;
 
+  const startCountdown = () => {
+    setShowCountdown(true);
+    setCountdown(7);
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handlePayment();
+          setShowCountdown(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const cancelPayment = () => {
+    setShowCountdown(false);
+  };
+
   const handlePayment = async () => {
     console.log('Card details:', cardDetails);
 
@@ -83,7 +105,7 @@ const CheckoutScreen = () => {
           surname,
           postalAddress: `${line1}, ${line2}, ${addressName}, ${city}, ${province}, ${postalCode}`,
           email,
-          orderDetails: JSON.stringify(basketItems),
+          orderDetails: basketItems,
           userID: currentUser.userID, // Replace with actual user ID
           memberID: 20000 // Replace with actual member ID
         }),
@@ -171,9 +193,18 @@ const CheckoutScreen = () => {
         <Text style={styles.summaryText}>Taxe (TVQ): ${taxTVQ.toFixed(2)}</Text>
         <Text style={styles.totalText}>Total: ${total.toFixed(2)}</Text>
       </View>
-      <TouchableOpacity style={styles.payButton} onPress={handlePayment}>
-        <Text style={styles.payButtonText}>Payer</Text>
-      </TouchableOpacity>
+      {showCountdown ? (
+        <View style={styles.countdownContainer}>
+          <Text style={styles.countdownText}>Payment will proceed in {countdown} seconds...</Text>
+          <TouchableOpacity style={styles.cancelButton} onPress={cancelPayment}>
+            <Text style={styles.cancelButtonText}>Annuler</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.payButton} onPress={startCountdown}>
+          <Text style={styles.payButtonText}>Payer</Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 };
@@ -248,6 +279,28 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderRadius: 5,
     fontFamily: 'Ebrima',
+  },
+  countdownContainer: {
+    backgroundColor: '#FFF0F0',
+    padding: 20,
+    margin: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  countdownText: {
+    fontSize: 18,
+    marginBottom: 10,
+    fontFamily: 'Ebrimabd',
+  },
+  cancelButton: {
+    backgroundColor: '#FF0000',
+    padding: 10,
+    borderRadius: 5,
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'Ebrimabd',
   },
 });
 

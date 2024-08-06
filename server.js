@@ -11,6 +11,10 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2');
 const { format } = require('date-fns');
+const twilio = require('twilio');
+
+// Configure your Twilio client
+const twilioClient = twilio('ACd2a202df6a7bec7411f181e00870cd8a', '9ed94e6070fe4bb5f35115d3ebdae3e4');
 
 // Create an Express app
 const app = express();
@@ -148,7 +152,7 @@ app.post('/api/dish', (req, res) => {
 
 // API endpoint to fetch all dishes
 app.get('/api/dishes', (req, res) => {
-    db.query('SELECT * FROM DISHES', (err, results) => {
+    db.query('SELECT * FROM DISHES ORDER BY RAND()', (err, results) => {
         if (err) {
             console.error('Failed to retrieve dishes from database:', err);
             return res.status(500).send('Error fetching dishes from the database');
@@ -448,7 +452,7 @@ app.get('/api/dish/:category', (req, res) => {
         return res.status(400).send('Invalid category specified');
     }
 
-    const query = `SELECT * FROM DISHES WHERE category = ?`;
+    const query = `SELECT * FROM DISHES WHERE category = ? ORDER BY RAND()`;
     db.query(query, [category], (err, results) => {
         if (err) {
             console.error(`Error fetching ${category} dishes:`, err);
@@ -457,6 +461,7 @@ app.get('/api/dish/:category', (req, res) => {
         res.json(results);
     });
 });
+
 
 
 // Api to search for a particular food in the DISHES table. 
@@ -920,7 +925,28 @@ app.post('/api/create-payment-intent', async (req, res) => {
     const { amount, name, surname, postalAddress, email, orderDetails, userID, memberID } = req.body;
 
     try {
-        console.log('Creating payment intent with amount:', amount);
+        console.log('Received payment intent request:', {
+            amount, name, surname, postalAddress, email, orderDetails, userID, memberID
+        });
+
+        // Check the type of orderDetails
+        console.log('Type of orderDetails:', typeof orderDetails);
+        console.log('Is orderDetails an array?', Array.isArray(orderDetails));
+
+        // If orderDetails is a string, parse it
+        let parsedOrderDetails = orderDetails;
+        if (typeof orderDetails === 'string') {
+            try {
+                parsedOrderDetails = JSON.parse(orderDetails);
+                console.log('Parsed orderDetails:', parsedOrderDetails);
+            } catch (e) {
+                throw new Error('orderDetails must be a valid JSON string');
+            }
+        }
+
+        if (!Array.isArray(parsedOrderDetails)) {
+            throw new Error('orderDetails must be an array');
+        }
 
         // Create payment intent
         const paymentIntent = await stripe.paymentIntents.create({
@@ -931,17 +957,31 @@ app.post('/api/create-payment-intent', async (req, res) => {
         const clientSecret = paymentIntent.client_secret;
         console.log('Payment intent created, client secret:', clientSecret);
 
+        // Extract only necessary fields from orderDetails
+        const filteredOrderDetails = parsedOrderDetails.map(item => ({
+            id: item.id,
+            title: item.title,
+            price: item.price,
+            quantity: item.quantity,
+            specifications: Array.isArray(item.specifications) ? item.specifications.map(spec => ({
+                id: spec.id,
+                title: spec.title,
+                price: spec.price,
+                quantity: spec.quantity
+            })) : [] // Handle case where specifications might be undefined
+        }));
+
         // Store receipt in the database
         const commandDateTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
         const paymentType = 'Card';
         const amountDetails = JSON.stringify({
             subtotal: (amount / 100).toFixed(2), // Assume the amount passed is in cents
-            deliveryFee: ((amount/100) * 0.3).toFixed(2), // Adjust accordingly
-            taxTPS: ((amount/100) * 0.05).toFixed(2), // Adjust accordingly
-            taxTVQ: ((amount/100) * 0.09975).toFixed(2), // Adjust accordingly
-            total: (((amount/100) * 0.3) + ((amount/100) * 0.05) + ((amount/100) * 0.09975) + (amount / 100)).toFixed(2) // Adjust accordingly
+            deliveryFee: ((amount / 100) * 0.3).toFixed(2), // Adjust accordingly
+            taxTPS: ((amount / 100) * 0.05).toFixed(2), // Adjust accordingly
+            taxTVQ: ((amount / 100) * 0.09975).toFixed(2), // Adjust accordingly
+            total: (((amount / 100) * 0.3) + ((amount / 100) * 0.05) + ((amount / 100) * 0.09975) + (amount / 100)).toFixed(2) // Adjust accordingly
         });
-        const commandDetails = orderDetails;
+        const commandDetails = JSON.stringify(filteredOrderDetails);
 
         const query = `
             INSERT INTO COMMANDS (commandDateTime, paymentType, amountDetails, commandDetails, userID, memberID)
@@ -957,26 +997,48 @@ app.post('/api/create-payment-intent', async (req, res) => {
             const commandId = result.insertId;
             console.log('Receipt stored in database with command ID:', commandId);
 
-            // Send confirmationemail
-            const mailOptions = {
-                from: 'macroysimen@gmail.com',
-                to: email,
-                subject: 'Order Confirmation',
-                text: `Order received from ${name} ${surname}.\n\nAddress: ${postalAddress}\n\nOrder Details:\n${orderDetails}\n\nEmail: ${email}`,
-            };
-
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('Error sending email:', error);
-                    return res.status(400).send({ error: 'Failed to send confirmation email' });
+            // Retrieve all members' emails and phone numbers
+            db.query('SELECT email, phoneNumber FROM MEMBERS', (err, members) => {
+                if (err) {
+                    console.error('Error fetching members from database:', err);
+                    return res.status(500).send({ error: 'Failed to fetch members' });
                 }
 
-                console.log('Email sent:', info.response);
+                const emails = members.map(member => member.email);
+                const phoneNumbers = members.map(member => member.phoneNumber);
 
-                res.send({
-                    success: 'Payment intent created, receipt stored, and email sent successfully',
-                    clientSecret,
-                    commandId
+                // Send email notifications
+                const mailOptions = {
+                    from: 'macroysimen@gmail.com',
+                    bcc: emails, // Extract email addresses and use bcc to hide recipients
+                    subject: 'Order Confirmation',
+                    text: `Order received from ${name} ${surname}.\n\nAddress: ${postalAddress}\n\nOrder Details:\n${JSON.stringify(filteredOrderDetails, null, 2)}\n\nEmail: ${email}`,
+                };
+
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.error('Error sending email:', error);
+                        return res.status(400).send({ error: 'Failed to send confirmation email' });
+                    }
+
+                    console.log('Email sent:', info.response);
+
+                    // Send SMS notifications
+                    phoneNumbers.forEach(phoneNumber => {
+                        twilioClient.messages.create({
+                            body: `New order received from ${name} ${surname}. Check your email for details.`,
+                            from: '8197018694',
+                            to: phoneNumber
+                        })
+                        .then(message => console.log('SMS sent:', message.sid))
+                        .catch(error => console.error('Error sending SMS:', error));
+                    });
+
+                    res.send({
+                        success: 'Payment intent created, receipt stored, email sent, and SMS notifications sent successfully',
+                        clientSecret,
+                        commandId
+                    });
                 });
             });
         });
@@ -1075,7 +1137,7 @@ const sendResetCode = (email, resetCode) => {
         from: 'macroysimen@gmail.com', // replace with your email
         to: email,
         subject: 'Reset your password',
-        text: `Your password reset code is ${resetCode}. This code will expire in one hour.`,
+        text: `Your password reset code is ${resetCode}.\n\nThis code will expire in one hour.`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -1103,6 +1165,36 @@ app.post('/api/send-support-email', (req, res) => {
             return res.status(500).send({ success: false, error: error.message });
         }
         res.send({ success: true });
+    });
+});
+
+app.post('/api/add-member', (req, res) => {
+    const { name, surname, phoneNumber, email, role, postalAddress, password } = req.body;
+
+    // Validate the input
+    if (!name || !surname || !phoneNumber || !email || !role || !postalAddress || !password) {
+        return res.status(400).json({ success: false, message: 'All fields are required.' });
+    }
+
+    // Insert the new member into the database
+    const query = 'INSERT INTO MEMBERS (name, surname, phoneNumber, email, role, postalAddress, password) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(query, [name, surname, phoneNumber, email, role, postalAddress, password], (err, result) => {
+        if (err) {
+            console.error('Error inserting member into database:', err);
+            return res.status(500).json({ success: false, message: 'Failed to add member.' });
+        }
+        res.status(200).json({ success: true, message: 'Member added successfully.' });
+    });
+});
+
+app.get('/api/members', (req, res) => {
+    const query = 'SELECT email FROM MEMBERS';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching members:', err);
+            return res.status(500).json({ success: false, message: 'Failed to fetch members.' });
+        }
+        res.status(200).json({ success: true, members: results });
     });
 });
 
