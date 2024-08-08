@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, Image, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/core';
 import SearchResults from './SearchResults';
 import Header from './Header';
@@ -13,28 +12,34 @@ const IngredientsScreen = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const navigation = useNavigation();
 
-    useEffect(() => {
-        // Fetch ingredients from backend
-        const fetchIngredients = async () => {
-            try {
-                const response = await fetch(`${config.apiBaseUrl}/ingredients`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch ingredients');
-                }
-                const data = await response.json();
-                setIngredients(data);
-                setLoading(false);
-            } catch (err) {
-                console.error('Error:', err);
-                setError(err.message);
-                setLoading(false);
+    const fetchIngredients = async () => {
+        try {
+            const response = await fetch(`${config.apiBaseUrl}/ingredients`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch ingredients');
             }
-        };
+            const data = await response.json();
+            setIngredients(data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Error:', err);
+            setError(err.message);
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchIngredients();
     }, []);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchIngredients();
+        setRefreshing(false);
+    };
 
     const handleCategoryPress = (category) => {
         switch (category) {
@@ -93,7 +98,11 @@ const IngredientsScreen = () => {
             {isSearching ? (
                 <SearchResults results={searchResults} onResultPress={handleResultPress} />
             ) : (
-                <ScrollView>
+                <ScrollView
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                >
                     <SectionHeader text="Epices" onPress={() => handleCategoryPress("Epice")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <IngredientsList ingredients={ingredients.filter(i => i.category === 'Epices')} onPress={handleResultPress} />

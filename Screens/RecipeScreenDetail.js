@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Entypo } from '@expo/vector-icons';
 import Header from './Header';
-import SearchBar from './SearchBar';
 import MealTab from './MealTab';
 import IngredientsTab from './IngredientsTab';
 import RecipeTab from './RecipeTab';
@@ -12,12 +11,12 @@ import config from '../config';
 
 const RecipeScreenDetail = ({ route }) => {
     const { dishId, item, updateBasketItem, itemToUpdate } = route.params || {};
-
     const navigation = useNavigation();
 
     const [dish, setDish] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [detailsVisible, setDetailsVisible] = useState(false);
 
     useEffect(() => {
         // Fetch data from backend
@@ -41,11 +40,8 @@ const RecipeScreenDetail = ({ route }) => {
 
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity onPress={() => {
-                    // Call the function here
-                    updateBasketItem(item); // Pass the item to updateBasketItem
-                }}>
-                    <Text>Modify Basket</Text> {/* Change the button text */}
+                <TouchableOpacity onPress={() => updateBasketItem(item)}>
+                    <Text>Modify Basket</Text>
                 </TouchableOpacity>
             ),
         });
@@ -67,18 +63,28 @@ const RecipeScreenDetail = ({ route }) => {
         <View style={styles.container}>
             <Header />
             {dish && (
+                <View style={styles.detailHeaderContainer}>
+                    <TouchableOpacity onPress={() => setDetailsVisible(!detailsVisible)}>
+                        <Entypo name="menu" size={24} color="black" />
+                    </TouchableOpacity>
+                    <View style={styles.titleFlagContainer}>
+                        {!detailsVisible && (
+                            <TouchableOpacity onPress={() => navigation.navigate('ImageScreen', { imageUrl: dish.image, posterName: dish.title })}>
+                                <Image source={{ uri: dish.image }} style={styles.smallImage} />
+                            </TouchableOpacity>
+                        )}
+                        <Text style={styles.foodTitle}>{dish.title}</Text>
+                        <Text style={styles.countryFlag}>{dish.countryFlag}</Text>
+                    </View>
+                </View>
+            )}
+            {detailsVisible && dish && (
                 <View style={styles.detailContainer}>
-                     <TouchableOpacity onPress={() => navigation.navigate('ImageScreen', { imageUrl: dish.image, posterName: dish.title })}>
+                    <TouchableOpacity onPress={() => navigation.navigate('ImageScreen', { imageUrl: dish.image, posterName: dish.title })}>
                         <Image source={{ uri: dish.image }} style={styles.foodImage} />
                     </TouchableOpacity>
-                    
                     <View style={styles.titleContainer}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
-                            <Text style={styles.foodTitle}>{dish.title}</Text>
-                            <Text style={styles.countryFlag}>{dish.countryFlag}</Text>
-                        </View>
                         <View style={styles.iconTextContainer}>
-                            
                             <Text style={styles.iconText}>{dish.description}</Text>
                         </View>
                         <View style={styles.iconTextContainer}>
@@ -92,9 +98,7 @@ const RecipeScreenDetail = ({ route }) => {
                     </View>
                 </View>
             )}
-            
-            {dish && <TabNavigator dish={dish} itemToUpdate={itemToUpdate}/>}
-            
+            {dish && <TabNavigator dish={dish} itemToUpdate={itemToUpdate} />}
         </View>
     );
 };
@@ -124,11 +128,24 @@ const TabNavigator = ({ dish, itemToUpdate }) => {
     );
 };
 
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
+    },
+    detailHeaderContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        backgroundColor: '#15FCFC',
+    },
+    titleFlagContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     detailContainer: {
         flexDirection: 'row',
@@ -150,14 +167,21 @@ const styles = StyleSheet.create({
         aspectRatio: 1,
         borderRadius: 60,
     },
+    smallImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+    },
     countryFlag: {
         fontSize: 20,
-        padding: 5
+        padding: 5,
     },
     foodTitle: {
-        fontSize: 30,
+        fontSize: 24,
         fontFamily: 'Ebrimabd',
         color: 'black',
+        marginLeft: 10,
     },
     iconTextContainer: {
         flexDirection: 'row',
@@ -168,7 +192,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: 'black',
         marginLeft: 5,
-        fontFamily: 'Ebrima'
+        fontFamily: 'Ebrima',
     },
 });
 

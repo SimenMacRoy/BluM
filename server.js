@@ -407,7 +407,7 @@ app.get('/api/dishes/:dishId/ingredients', (req, res) => {
 
 // In your server.js (Node.js server code)
 app.get('/api/ingredients', (req, res) => {
-    const query = `SELECT * FROM INGREDIENTS`;
+    const query = `SELECT * FROM INGREDIENTS ORDER BY RAND()`;
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error fetching ingredients:', err);
@@ -442,7 +442,7 @@ app.get('/api/ingredient/:category', (req, res) => {
         return res.status(400).send('Invalid category');
     }
 
-    const query = `SELECT * FROM INGREDIENTS WHERE category = ?`;
+    const query = `SELECT * FROM INGREDIENTS WHERE category = ? ORDER BY RAND()`;
     db.query(query, [category], (err, results) => {
         if (err) {
             console.error(`Error fetching ${category}:`, err);
