@@ -14,6 +14,8 @@ const MealTab = ({ route }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const disabledIngredientIds = [90023, 90135, 90147, 90162, 90133]; // Array of IDs to be disabled
+
     useEffect(() => {
         if (!existingItem) {
             fetchIngredients();
@@ -125,24 +127,35 @@ const MealTab = ({ route }) => {
 
                 <Text style={styles.subHeader}>Spécifications(+ ou - d'ingrédients)</Text>
                 <ScrollView style={styles.specificationsContainer}>
-                    {specifications.map((ingredient, index) => (
-                        <View key={index} style={styles.ingredientItem}>
-                            <Text style={styles.ingredientName}>{ingredient.title}</Text>
-                            <View style={styles.quantityContainer}>
-                                <TouchableOpacity onPress={() => decreaseQuantity(index)} style={styles.circleButton}>
-                                    <Text style={styles.circleButtonText}>-</Text>
-                                </TouchableOpacity>
-                                <Text style={styles.quantity}>{ingredient.quantity}</Text>
-                                <TouchableOpacity onPress={() => increaseQuantity(index)} style={styles.circleButton}>
-                                    <Text style={styles.circleButtonText}>+</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <View style={{ marginLeft: 60 }}>
-                                <Text style={styles.price}>${(parseFloat(ingredient.price) / 10).toFixed(2)}</Text>
-                            </View>
-                        </View>
+                    {specifications.map((ingredient, index) => {
+                        const isDisabled = disabledIngredientIds.includes(ingredient.id); // Check if the ingredient ID is in the disabled list
                         
-                    ))}
+                        return (
+                            <View key={index} style={styles.ingredientItem}>
+                                <Text style={styles.ingredientName}>{ingredient.title}</Text>
+                                <View style={styles.quantityContainer}>
+                                    <TouchableOpacity 
+                                        onPress={() => !isDisabled && decreaseQuantity(index)} 
+                                        style={[styles.circleButton, isDisabled && styles.disabledButton]}
+                                        disabled={isDisabled}
+                                    >
+                                        <Text style={[styles.circleButtonText, isDisabled && styles.disabledText]}>-</Text>
+                                    </TouchableOpacity>
+                                    <Text style={[styles.quantity, isDisabled && styles.disabledText]}>{ingredient.quantity}</Text>
+                                    <TouchableOpacity 
+                                        onPress={() => !isDisabled && increaseQuantity(index)} 
+                                        style={[styles.circleButton, isDisabled && styles.disabledButton]}
+                                        disabled={isDisabled}
+                                    >
+                                        <Text style={[styles.circleButtonText, isDisabled && styles.disabledText]}>+</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{ marginLeft: 60 }}>
+                                    <Text style={styles.price}>${(parseFloat(ingredient.price) / 10).toFixed(2)}</Text>
+                                </View>
+                            </View>
+                        );
+                    })}
 
                     <TouchableOpacity style={styles.addToBasketButton} onPress={handleAddToBasket}>
                         <Text style={styles.buttonText}>{existingItem ? `Mettre à jour ($${totalPrice.toFixed(2)})` : `Ajouter au panier ($${totalPrice.toFixed(2)})`}</Text>
@@ -208,6 +221,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: 'white',
         fontFamily: 'Ebrima',
+    },
+    disabledButton: {
+        backgroundColor: '#ddd', // Greyed out color
+    },
+    disabledText: {
+        color: '#999', // Greyed out text
     },
     price: {
         fontSize: 14,

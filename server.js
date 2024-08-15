@@ -1209,7 +1209,7 @@ app.post('/api/add-member', (req, res) => {
 });
 
 app.get('/api/members', (req, res) => {
-    const query = 'SELECT email FROM MEMBERS';
+    const query = 'SELECT email FROM MEMBERS WHERE memberID = 20000';
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error fetching members:', err);
