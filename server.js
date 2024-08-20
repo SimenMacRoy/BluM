@@ -939,28 +939,24 @@ app.post('/api/create-payment-intent', async (req, res) => {
             amount, name, surname, postalAddress, email, orderDetails, userID, memberID
         });
 
-        // Check the type of orderDetails
-        console.log('Type of orderDetails:', typeof orderDetails);
-        console.log('Is orderDetails an array?', Array.isArray(orderDetails));
-
-        // If orderDetails is a string, parse it
         let parsedOrderDetails = orderDetails;
-        if (typeof orderDetails === 'string') {
-            try {
-                parsedOrderDetails = JSON.parse(orderDetails);
-                console.log('Parsed orderDetails:', parsedOrderDetails);
-            } catch (e) {
-                throw new Error('orderDetails must be a valid JSON string');
-            }
-        }
 
-        if (!Array.isArray(parsedOrderDetails)) {
-            throw new Error('orderDetails must be an array');
+        // Correctly calculate subtotal (in cents)
+        const subtotalCents = parsedOrderDetails.reduce((acc, item) => acc + Math.round(parseFloat(item.price) * item.quantity * 100), 0);
+        
+        // Calculate delivery fee, taxes, and total based on the correct subtotal
+        const deliveryFeeCents = Math.round(subtotalCents * 0.3);
+        const taxTPSCents = Math.round(subtotalCents * 0.05);
+        const taxTVQCents = Math.round(subtotalCents * 0.09975);
+        const totalCents = subtotalCents + deliveryFeeCents + taxTPSCents + taxTVQCents;
+
+        if (amount !== totalCents) {
+            throw new Error('Mismatch between provided amount and calculated total');
         }
 
         // Create payment intent
         const paymentIntent = await stripe.paymentIntents.create({
-            amount,
+            amount: totalCents,
             currency: 'usd',
         });
 
@@ -985,11 +981,11 @@ app.post('/api/create-payment-intent', async (req, res) => {
         const commandDateTime = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
         const paymentType = 'Card';
         const amountDetails = JSON.stringify({
-            subtotal: (amount / 100).toFixed(2), // Assume the amount passed is in cents
-            deliveryFee: ((amount / 100) * 0.3).toFixed(2), // Adjust accordingly
-            taxTPS: ((amount / 100) * 0.05).toFixed(2), // Adjust accordingly
-            taxTVQ: ((amount / 100) * 0.09975).toFixed(2), // Adjust accordingly
-            total: (((amount / 100) * 0.3) + ((amount / 100) * 0.05) + ((amount / 100) * 0.09975) + (amount / 100)).toFixed(2) // Adjust accordingly
+            subtotal: (subtotalCents / 100).toFixed(2), 
+            deliveryFee: (deliveryFeeCents / 100).toFixed(2),
+            taxTPS: (taxTPSCents / 100).toFixed(2),
+            taxTVQ: (taxTVQCents / 100).toFixed(2),
+            total: (totalCents / 100).toFixed(2) 
         });
         const commandDetails = JSON.stringify(filteredOrderDetails);
 
@@ -1057,6 +1053,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
         res.status(400).send({ error: error.message });
     }
 });
+
+
   // Endpoint to request a password reset
   app.post('/api/request-reset-password', async (req, res) => {
     const { contact } = req.body;

@@ -1,19 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import HomeScreen from '../Screens/HomeScreen';
-import RecipeScreen from '../Screens/RecipeScreen';
-import IngredientsScreen from '../Screens/IngredientsScreen';
-import DeliveryScreen from '../Screens/DeliveryScreen';
-import MoreScreen from '../Screens/MoreScreen';
-import RecipeScreenDetail from '../Screens/RecipeScreenDetail';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import RecipeNav from './RecipeNav';
-import CommandNav from './CommandNav';
 import IngredientNav from './IngredientNav';
-import MoreNav from './MoreNav';
-import HomeNav from './HomeNav';
 import Basket from '../Screens/Basket';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import MoreNav from './MoreNav';
 
 const Tab = createBottomTabNavigator();
 
@@ -23,35 +14,34 @@ const TabNavigator = () => {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
+          let IconComponent = Ionicons; // Default to Ionicons
+
           if (route.name === 'Accueil') {
             iconName = 'home';
           } else if (route.name === 'Recettes') {
             iconName = 'book';
           } else if (route.name === 'Ingredients') {
-            iconName = 'nutrition';
+            iconName = 'carrot'; // Example of a more representative icon
+            IconComponent = FontAwesome5; // Use FontAwesome5 for this icon
           } else if (route.name === 'Commander') {
             iconName = 'cart';
           } else if (route.name === 'Mon Compte') {
             iconName = 'menu-outline';
           }
 
-          // Use focused state to determine icon size
           const adjustedSize = focused ? size * 1.25 : size;
 
-          return <Ionicons name={iconName} size={adjustedSize} color={color} />;
+          return <IconComponent name={iconName} size={adjustedSize} color={color} />;
         },
-        // Common screenOptions can be added here
         activeTintColor: 'blue',
         inactiveTintColor: 'gray',
-        keyboardHidesTabBar: true,
-  
+        keyboardHidesTabBar: false, // Prevent the tab bar from hiding with the keyboard
       })}
     >
       <Tab.Screen name="Recettes" component={RecipeNav} options={{headerShown: false}}/>
       <Tab.Screen name="Ingredients" component={IngredientNav} options={{headerShown: false}}/>
       <Tab.Screen name="Commander" component={Basket} options={{headerShown: false}}/>
       <Tab.Screen name="Mon Compte" component={MoreNav} options={{headerShown: false}}/>
-      
     </Tab.Navigator>
   );
 };
