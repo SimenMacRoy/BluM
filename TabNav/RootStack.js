@@ -36,6 +36,8 @@ import PromotionsScreen from '../Screens/PromotionsScreen';
 import SupportScreen from '../Screens/SupportScreen';
 import AddDishScreen from '../Screens/AddDishScreen';
 import AddMemberScreen from '../Screens/AddMemberScreen';
+import StoreScreen from '../Screens/StoreScreen';
+import StoreDetailScreen from '../Screens/StoreDetailScreen';
 
 // Define a root stack navigator
 const RootStack = createStackNavigator();
@@ -81,6 +83,8 @@ const RootNavigator = () => {
       <RootStack.Screen name="SupportScreen" component={SupportScreen} options={{ headerShown:false }}/>
       <RootStack.Screen name="AddDishScreen" component={AddDishScreen} options={{ headerShown: false }}/>
       <RootStack.Screen name="AddMemberScreen" component={AddMemberScreen} options={{ headerShown: false }}/>
+      <RootStack.Screen name="StoreScreen" component={StoreScreen} options={{ headerShown: false }}/>
+      <RootStack.Screen name="StoreDetailScreen" component={StoreDetailScreen} options={{ headerShown: false }}/>
     </RootStack.Navigator>
   );
 };

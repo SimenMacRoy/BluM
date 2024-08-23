@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import RecipeNav from './RecipeNav';
 import IngredientNav from './IngredientNav';
+import StoreNav from './StoreNav';
 import Basket from '../Screens/Basket';
 import MoreNav from './MoreNav';
 
@@ -20,6 +21,8 @@ const TabNavigator = () => {
             iconName = 'home';
           } else if (route.name === 'Recettes') {
             iconName = 'book';
+          } else if (route.name === 'Magasin') {
+            iconName = 'home';
           } else if (route.name === 'Ingredients') {
             iconName = 'carrot'; // Example of a more representative icon
             IconComponent = FontAwesome5; // Use FontAwesome5 for this icon
@@ -39,6 +42,7 @@ const TabNavigator = () => {
       })}
     >
       <Tab.Screen name="Recettes" component={RecipeNav} options={{headerShown: false}}/>
+      <Tab.Screen name="Magasin" component={StoreNav} options={{headerShown: false}}/>
       <Tab.Screen name="Ingredients" component={IngredientNav} options={{headerShown: false}}/>
       <Tab.Screen name="Commander" component={Basket} options={{headerShown: false}}/>
       <Tab.Screen name="Mon Compte" component={MoreNav} options={{headerShown: false}}/>

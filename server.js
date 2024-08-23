@@ -1217,6 +1217,59 @@ app.get('/api/members', (req, res) => {
     });
 });
 
+app.get('/api/suppliers', (req, res) => {
+    const sqlQuery = `SELECT supplierID, name, logo, openingTime, closingTime FROM suppliers`;
+
+    db.query(sqlQuery, (err, results) => {
+        if (err) {
+            console.error('Error fetching suppliers:', err);
+            return res.status(500).send('Error fetching suppliers');
+        }
+
+        res.json({
+            success: true,
+            suppliers: results
+        });
+    });
+});
+
+app.get('/api/suppliers/:supplierID', (req, res) => {
+    const { supplierID } = req.params;
+
+    const supplierQuery = `SELECT * FROM suppliers WHERE supplierID = ?`;
+    const ingredientsQuery = `
+        SELECT i.id, i.title, i.image, si.unitPrice 
+        FROM supplier_ingredient si
+        JOIN INGREDIENTS i ON si.ingredientID = i.id
+        WHERE si.supplierID = ?
+    `;
+
+    db.query(supplierQuery, [supplierID], (err, supplierResults) => {
+        if (err) {
+            console.error('Error fetching supplier:', err);
+            return res.status(500).send('Error fetching supplier');
+        }
+
+        if (supplierResults.length === 0) {
+            return res.status(404).send('Supplier not found');
+        }
+
+        db.query(ingredientsQuery, [supplierID], (err, ingredientResults) => {
+            if (err) {
+                console.error('Error fetching ingredients:', err);
+                return res.status(500).send('Error fetching ingredients');
+            }
+
+            res.json({
+                success: true,
+                supplier: supplierResults[0],
+                ingredients: ingredientResults
+            });
+        });
+    });
+});
+
+
 // Directly specify server port
 const port = 3006; // Replace with your desired port
 app.listen(port, () => {
