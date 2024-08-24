@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Header from './Header';
+import SearchBar from './SearchBar';  // Import the SearchBar component
+import SearchResults from './SearchResults';  // Import the SearchResults component
 import config from '../config';
 
 const StoreScreen = () => {
     const [suppliers, setSuppliers] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -41,30 +45,104 @@ const StoreScreen = () => {
         return now >= openTime && now <= closeTime;
     };
 
+    const handleSearch = (results) => {
+        setSearchResults(results);
+        setIsSearching(results.length > 0);
+    };
+
+    const handleResultPress = (ingredient) => {
+        navigation.navigate('IngredientsDetailScreen', { ingredientId: ingredient.id });
+    };
+
     return (
-        <ScrollView>
+        <View style={{ flex: 1 }}>
             <Header />
-            <Text style={{ fontSize: 24, fontWeight: 'bold', padding: 10 }}>Vos Magasins</Text>
-            {suppliers.map((supplier) => (
-                <TouchableOpacity
-                    key={supplier.supplierID}
-                    style={{ padding: 10, borderBottomWidth: 1, borderColor: '#ddd' }}
-                    onPress={() => navigation.navigate('StoreDetailScreen', { supplierID: supplier.supplierID })}
-                >
-                    {supplier.logo && (
-                        <Image
-                            source={{ uri: supplier.logo }}
-                            style={{ width: 100, height: 100, marginBottom: 10 }}
-                        />
-                    )}
-                    <Text style={{ fontSize: 20 }}>{supplier.name}</Text>
-                    {!isOpen(supplier.openingTime, supplier.closingTime) && (
-                        <Text style={{ color: 'red' }}>Ferme ouvre à 10hr</Text>
-                    )}
-                </TouchableOpacity>
-            ))}
-        </ScrollView>
+            <SearchBar
+                onSearch={handleSearch}
+                onResultPress={handleResultPress}
+                placeholder='Recherchez des ingrédients...'
+                searchType={'ingredients'}  // Ensure this search type targets ingredients
+            />
+
+            <Text style={styles.title}>Vos Magasins</Text>
+
+            {isSearching ? (
+                <SearchResults
+                    results={searchResults}
+                    onResultPress={handleResultPress}
+                />
+            ) : (
+                <ScrollView>
+                    {suppliers.map((supplier) => {
+                        const open = isOpen(supplier.openingTime, supplier.closingTime);
+                        return (
+                            <TouchableOpacity
+                                key={supplier.supplierID}
+                                style={[styles.supplierContainer, !open && styles.closedContainer]}
+                                onPress={() => navigation.navigate('StoreDetailScreen', { supplierID: supplier.supplierID })}
+                            >
+                                {supplier.logo && (
+                                    <Image
+                                        source={{ uri: supplier.logo }}
+                                        style={styles.logoImage}
+                                    />
+                                )}
+                                <Text style={styles.supplierName}>{supplier.name}</Text>
+                                {open ? (
+                                    <Text style={styles.openText}>Actuellement Ouvert</Text>
+                                ) : (
+                                    <Text style={styles.closedText}>Fermé ! Ouvre à 10:00 am</Text>
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            )}
+        </View>
     );
 };
+
+const styles = StyleSheet.create({
+    title: {
+        fontSize: 24,
+        fontFamily: 'Ebrimabd',
+        textAlign: 'center',
+        marginVertical: 10,
+    },
+    supplierContainer: {
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#15FCFC',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        alignItems: 'center',  // Center align the content
+        marginHorizontal: 15,
+        marginVertical: 10,
+    },
+    closedContainer: {
+        backgroundColor: '#d3d3d3',  // Gray background if the store is closed
+    },
+    logoImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,  // Make the image round
+        marginBottom: 10,
+    },
+    supplierName: {
+        fontSize: 20,
+        fontFamily: 'Ebrimabd',
+        color: 'black',
+    },
+    closedText: {
+        color: 'red',
+        fontFamily: 'Ebrima',
+        fontSize: 16,
+    },
+    openText: {
+        color: 'green',
+        fontFamily: 'Ebrima',
+        fontSize: 16,
+    },
+});
 
 export default StoreScreen;

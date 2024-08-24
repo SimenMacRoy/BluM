@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Header from './Header';
+import SearchBar from './SearchBar';
+import SearchResults from './SearchResults';
 import config from '../config';
 
 const StoreDetailScreen = ({ route }) => {
     const { supplierID } = route.params;
     const [supplier, setSupplier] = useState(null);
     const [ingredients, setIngredients] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -30,6 +34,11 @@ const StoreDetailScreen = ({ route }) => {
         fetchSupplierDetails();
     }, [supplierID]);
 
+    const handleSearch = (results) => {
+        setSearchResults(results);
+        setIsSearching(results.length > 0);
+    };
+
     if (!supplier) {
         return <Text>Loading...</Text>;
     }
@@ -37,33 +46,84 @@ const StoreDetailScreen = ({ route }) => {
     return (
         <ScrollView>
             <Header />
-            <View style={{ alignItems: 'center', padding: 20 }}>
+            <View style={styles.supplierInfoContainer}>
                 {supplier.logo && (
                     <Image
                         source={{ uri: supplier.logo }}
-                        style={{ width: 150, height: 150, marginBottom: 10 }}
+                        style={styles.logoImage}
                     />
                 )}
-                <Text style={{ fontSize: 24, fontWeight: 'bold' }}>{supplier.name}</Text>
+                <Text style={styles.supplierName}>{supplier.name}</Text>
             </View>
-            {ingredients.map((ingredient) => (
-                <TouchableOpacity
-                    key={ingredient.id}
-                    style={{ padding: 10, borderBottomWidth: 1, borderColor: '#ddd' }}
-                    onPress={() => navigation.navigate('IngredientsDetailScreen', { ingredientId: ingredient.id })}
-                >
-                    {ingredient.image && (
-                        <Image
-                            source={{ uri: ingredient.image }}
-                            style={{ width: 100, height: 100, marginBottom: 10 }}
-                        />
-                    )}
-                    <Text style={{ fontSize: 20 }}>{ingredient.title}</Text>
-                    <Text style={{ fontSize: 16, color: '#888' }}>Prix: ${ingredient.unitPrice}</Text>
-                </TouchableOpacity>
-            ))}
+            <SearchBar
+                onSearch={handleSearch}
+                placeholder={`Rechercher dans ${supplier.name}`}
+                searchType={`supplier_ingredients_${supplierID}`}  // Assuming search type is specific to supplier's ingredients
+            />
+            {isSearching ? (
+                <SearchResults
+                    results={searchResults}
+                    onResultPress={(ingredient) => navigation.navigate('IngredientsDetailScreen', { ingredientId: ingredient.id })}
+                />
+            ) : (
+                ingredients.map((ingredient) => (
+                    <TouchableOpacity
+                        key={ingredient.id}
+                        style={styles.ingredientContainer}
+                        onPress={() => navigation.navigate('IngredientsDetailScreen', { ingredientId: ingredient.id })}
+                    >
+                        {ingredient.image && (
+                            <Image
+                                source={{ uri: ingredient.image }}
+                                style={styles.ingredientImage}
+                            />
+                        )}
+                        <Text style={styles.ingredientTitle}>{ingredient.title}</Text>
+                        <Text style={styles.ingredientPrice}>Prix: ${ingredient.unitPrice}</Text>
+                    </TouchableOpacity>
+                ))
+            )}
         </ScrollView>
     );
 };
+
+const styles = StyleSheet.create({
+    supplierInfoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 20,
+    },
+    logoImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,  // Make the logo round
+        marginRight: 15,
+    },
+    supplierName: {
+        fontSize: 24,
+        fontFamily: 'Ebrimabd',
+    },
+    ingredientContainer: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderColor: '#ddd',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    ingredientImage: {
+        width: 100,
+        height: 100,
+        marginRight: 15,
+    },
+    ingredientTitle: {
+        fontSize: 20,
+        fontFamily: 'Ebrima',
+    },
+    ingredientPrice: {
+        fontSize: 16,
+        color: '#888',
+        fontFamily: 'Ebrima',
+    },
+});
 
 export default StoreDetailScreen;

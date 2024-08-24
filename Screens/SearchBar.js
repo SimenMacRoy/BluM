@@ -4,13 +4,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import config from '../config';
 
-const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que voulez-vous cuisiner ?", searchType }) => {
+const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que voulez-vous cuisiner ?", searchType, supplierID }) => {
     const [focused, setFocused] = useState(false);
     const [text, setText] = useState(searchText);
-    const [suggestedDish, setSuggestedDish] = useState(null);
-    const [suggestedIngredient, setSuggestedIngredient] = useState(null);
-    const [suggestedSpices, setSuggestedSpices] = useState(null);
-    const [suggestedMeats, setSuggestedMeats] = useState(null);
     const [suggestions, setSuggestions] = useState(null);
 
     const navigation = useNavigation();
@@ -21,6 +17,8 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
             apiEndpoint = `${config.apiBaseUrl}/search/foods?query=${query}`;
         } else if (searchType === 'ingredients') {
             apiEndpoint = `${config.apiBaseUrl}/search/ingredients?query=${query}`;
+        } else if (searchType === `supplier_ingredients_${supplierID}`) {
+            apiEndpoint = `${config.apiBaseUrl}/search/supplier_ingredients/${supplierID}?query=${query}`;
         } else {
             apiEndpoint = `${config.apiBaseUrl}/search/${searchType}?query=${query}`;
         }
@@ -35,22 +33,11 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
     };
 
     const handleSearchIconPress = () => {
-
         if (!text) {
-            // Focus the text input if no text is entered
             this.textInputRef.focus();
         } else {
-            if (searchType === 'foods' && suggestedDish) {
-                navigation.navigate('RecipeScreenDetail', { dishId: suggestedDish.id });
-            } else if (searchType === 'ingredients' && suggestedIngredient) {
-                navigation.navigate('IngredientsDetailScreen', { ingredientId: suggestedIngredient.id });
-            } else {
-                if (searchType === 'Africans' || searchType === 'Americans' || searchType === 'Asians' || searchType === 'Europeans'){
-                    navigation.navigate('RecipeScreenDetail', { dishId: suggestions.id });
-                }
-                else {
-                    navigation.navigate('IngredientsDetailScreen', { ingredientId: suggestions.id });
-                }
+            if (suggestions) {
+                navigation.navigate('IngredientsDetailScreen', { ingredientId: suggestions.id });
             }
         }
     };
@@ -69,24 +56,10 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
         if (value) {
             const filteredData = await fetchResults(value);
 
-            if (searchType === 'foods') {
-                if (filteredData.length > 0) {
-                    setSuggestedDish(filteredData[0]);
-                } else {
-                    setSuggestedDish(null);
-                }
-            } else if (searchType === 'ingredients') {
-                if (filteredData.length > 0) {
-                    setSuggestedIngredient(filteredData[0]);
-                } else {
-                    setSuggestedIngredient(null);
-                }
+            if (filteredData.length > 0) {
+                setSuggestions(filteredData[0]);
             } else {
-                if (filteredData.length > 0) {
-                    setSuggestions(filteredData[0]);
-                } else {
-                    setSuggestions(null);
-                }
+                setSuggestions(null);
             }
 
             if (onSearch) {
@@ -96,8 +69,6 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
             if (onSearch) {
                 onSearch([]);
             }
-            setSuggestedDish(null);
-            setSuggestedIngredient(null);
             setSuggestions(null);
         }
     };
@@ -152,8 +123,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Ebrima',
     },
     focused: {
-        backgroundColor: '#D9D9D9', // Lighter background when focused
-        borderColor: '#000', // Darker border when focused
+        backgroundColor: '#D9D9D9', 
+        borderColor: '#000', 
     },
     clearIcon: {},
 });

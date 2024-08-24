@@ -1269,6 +1269,27 @@ app.get('/api/suppliers/:supplierID', (req, res) => {
     });
 });
 
+app.get('/api/search/supplier_ingredients/:supplierID', (req, res) => {
+    const { supplierID } = req.params;
+    const searchTerm = req.query.query;
+    
+    const query = `
+        SELECT i.*
+        FROM supplier_ingredient si
+        JOIN INGREDIENTS i ON si.ingredientID = i.id
+        WHERE si.supplierID = ? AND i.title LIKE ?
+    `;
+    
+    db.query(query, [supplierID, `%${searchTerm}%`], (err, results) => {
+        if (err) {
+            console.error(`Error searching ingredients for supplier ${supplierID}:`, err);
+            return res.status(500).send(`Error searching ingredients for supplier ${supplierID}`);
+        }
+        res.json(results);
+    });
+});
+
+
 
 // Directly specify server port
 const port = 3006; // Replace with your desired port
