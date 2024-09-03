@@ -1238,7 +1238,7 @@ app.get('/api/suppliers/:supplierID', (req, res) => {
 
     const supplierQuery = `SELECT * FROM suppliers WHERE supplierID = ?`;
     const ingredientsQuery = `
-        SELECT i.id, i.title, i.image, si.unitPrice 
+        SELECT i.id, i.title, i.image, i.category, i.price 
         FROM supplier_ingredient si
         JOIN INGREDIENTS i ON si.ingredientID = i.id
         WHERE si.supplierID = ?
@@ -1272,6 +1272,10 @@ app.get('/api/suppliers/:supplierID', (req, res) => {
 app.get('/api/search/supplier_ingredients/:supplierID', (req, res) => {
     const { supplierID } = req.params;
     const searchTerm = req.query.query;
+
+    console.log('Supplier ID:', supplierID);
+    console.log('Search Term:', searchTerm);
+
     
     const query = `
         SELECT i.*

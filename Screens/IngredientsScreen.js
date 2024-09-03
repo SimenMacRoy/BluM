@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation } from '@react-navigation/native';
 import SearchResults from './SearchResults';
-import Header from './Header';
 import SearchBar from './SearchBar';
 import config from '../config';
+import Header from './Header';
 
-const IngredientsScreen = () => {
+const IngredientsScreen = ({ supplierID, hideHeader, hideSearchBar }) => {
     const [ingredients, setIngredients] = useState([]);
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const navigation = useNavigation();
 
     const fetchIngredients = async () => {
         try {
-            const response = await fetch(`${config.apiBaseUrl}/ingredients`);
+            const endpoint = supplierID 
+                ? `${config.apiBaseUrl}/suppliers/${supplierID}` 
+                : `${config.apiBaseUrl}/ingredients`;
+
+            const response = await fetch(endpoint);
             if (!response.ok) {
                 throw new Error('Failed to fetch ingredients');
             }
             const data = await response.json();
-            setIngredients(data);
+            setIngredients(supplierID ? data.ingredients : data);
             setLoading(false);
         } catch (err) {
             console.error('Error:', err);
@@ -33,7 +38,7 @@ const IngredientsScreen = () => {
 
     useEffect(() => {
         fetchIngredients();
-    }, []);
+    }, [supplierID]);
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -43,7 +48,7 @@ const IngredientsScreen = () => {
 
     const handleCategoryPress = (category) => {
         switch (category) {
-            case "Epice":
+            case "Epices":
                 navigation.navigate('SpiceScreen');
                 break;
             case "Condiments":
@@ -78,6 +83,10 @@ const IngredientsScreen = () => {
         setIsSearching(results.length > 0);
     };
 
+    const filteredIngredients = selectedCategory
+        ? ingredients.filter(i => i.category === selectedCategory)
+        : ingredients;
+
     if (loading) {
         return <ActivityIndicator size="large" color="#15FCFC" />;
     }
@@ -92,9 +101,16 @@ const IngredientsScreen = () => {
 
     return (
         <View style={{ flex: 1 }}>
-            <Header />
-            <SearchBar onSearch={handleSearch} onResultPress={handleResultPress} placeholder='Quels ingredients voulez-vous ?' searchType={'ingredients'} />
-
+            {!hideHeader && <Header />}
+            {!hideSearchBar && (
+                <SearchBar 
+                    onSearch={handleSearch} 
+                    onResultPress={handleResultPress} 
+                    placeholder='Quels ingredients voulez-vous ?' 
+                    searchType={supplierID ? `supplier_ingredients_${supplierID}` : 'ingredients'} 
+                    supplierID={supplierID}
+                />
+            )}
             {isSearching ? (
                 <SearchResults results={searchResults} onResultPress={handleResultPress} />
             ) : (
@@ -103,42 +119,41 @@ const IngredientsScreen = () => {
                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                     }
                 >
-                    <SectionHeader text="Epices" onPress={() => handleCategoryPress("Epice")} />
+                    {/* Example Categories - customize as needed */}
+                    <SectionHeader text="Epices" onPress={() => handleCategoryPress("Epices")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <IngredientsList ingredients={ingredients.filter(i => i.category === 'Epices')} onPress={handleResultPress} />
+                        <IngredientsList ingredients={filteredIngredients.filter(i => i.category === 'Epices')} onPress={handleResultPress} />
                     </ScrollView>
 
                     <SectionHeader text="Viande" onPress={() => handleCategoryPress("Viande")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <IngredientsList ingredients={ingredients.filter(i => i.category === 'Viande')} onPress={handleResultPress} />
+                        <IngredientsList ingredients={filteredIngredients.filter(i => i.category === 'Viande')} onPress={handleResultPress} />
                     </ScrollView>
                     
                     <SectionHeader text="Légumes" onPress={() => handleCategoryPress("Legumes")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <IngredientsList ingredients={ingredients.filter(i => i.category === 'Legumes')} onPress={handleResultPress} />
+                        <IngredientsList ingredients={filteredIngredients.filter(i => i.category === 'Legumes')} onPress={handleResultPress} />
                     </ScrollView>
 
                     <SectionHeader text="Condiments Et Assaisonements" onPress={() => handleCategoryPress("Condiments")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <IngredientsList ingredients={ingredients.filter(i => i.category === 'Condiments')} onPress={handleResultPress} />
+                        <IngredientsList ingredients={filteredIngredients.filter(i => i.category === 'Condiments')} onPress={handleResultPress} />
                     </ScrollView>
 
                     <SectionHeader text="Produits en Conserves" onPress={() => handleCategoryPress("ProdEnConserves")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <IngredientsList ingredients={ingredients.filter(i => i.category === 'ProdEnConserves')} onPress={handleResultPress} />
+                        <IngredientsList ingredients={filteredIngredients.filter(i => i.category === 'ProdEnConserves')} onPress={handleResultPress} />
                     </ScrollView>
 
                     <SectionHeader text="Boissons" onPress={() => handleCategoryPress("Boissons")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <IngredientsList ingredients={ingredients.filter(i => i.category === 'Boissons')} onPress={handleResultPress} />
+                        <IngredientsList ingredients={filteredIngredients.filter(i => i.category === 'Boissons')} onPress={handleResultPress} />
                     </ScrollView>
 
                     <SectionHeader text="Autres" onPress={() => handleCategoryPress("Autres")} />
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <IngredientsList ingredients={ingredients.filter(i => i.category === 'Autres')} onPress={handleResultPress} />
+                        <IngredientsList ingredients={filteredIngredients.filter(i => i.category === 'Autres')} onPress={handleResultPress} />
                     </ScrollView>
-
-                    {/* Add more categories as needed */}
                 </ScrollView>
             )}
         </View>

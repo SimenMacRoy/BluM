@@ -13,8 +13,8 @@ const Basket = () => {
     };
 
     const handleModify = (item) => {
-        const screen = item.type === 'Plat' ? 'RecipeScreenDetail' : 'IngredientsDetailScreen';
-        const paramKey = item.type === 'Plat' ? 'dishId' : 'ingredientId';
+        const screen = 'RecipeScreenDetail'; // Navigate to MealTab
+        const paramKey = 'dishId'; // Assuming 'dishId' is the parameter used for MealTab
 
         const modifiedItem = {
             ...item,
@@ -67,24 +67,26 @@ const Basket = () => {
             : "Aucune spécification pour ce repas";
 
         return (
-            <View style={styles.itemContainer}>
-                <Image source={{ uri: item.image }} style={styles.image} />
-                <View style={styles.infoContainer}>
-                    <Text style={styles.title}>{item.title}</Text>
-                    <Text style={styles.boldGreyText}>Quantité: <Text style={styles.normalText}>{item.quantity}</Text></Text>
-                    {item.type === 'Plat' ? <Text style={styles.boldGreyText}>Prix Total: <Text style={styles.normalText}>${item.totalPrice}</Text></Text> : <Text style={styles.boldGreyText}>Prix Total: <Text style={styles.normalText}>${(item.price * item.quantity).toFixed(2)}</Text></Text> }
-                    {item.type === 'Plat' && <Text style={styles.boldGreyText}>Spécifications: <Text style={styles.normalText}>{specificationsText}</Text></Text>}
-                    <Text style={styles.boldGreyText}>Date/Heure: <Text style={styles.normalText}>{deliveryDateString} à {deliveryTime}</Text></Text>
+            <TouchableOpacity onPress={() => handleModify(item)}>
+                <View style={styles.itemContainer}>
+                    <Image source={{ uri: item.image }} style={styles.image} />
+                    <View style={styles.infoContainer}>
+                        <Text style={styles.title}>{item.title}</Text>
+                        <Text style={styles.boldGreyText}>Quantité: <Text style={styles.normalText}>{item.quantity}</Text></Text>
+                        {item.type === 'Plat' ? <Text style={styles.boldGreyText}>Prix Total: <Text style={styles.normalText}>${item.totalPrice}</Text></Text> : <Text style={styles.boldGreyText}>Prix Total: <Text style={styles.normalText}>${(item.price * item.quantity).toFixed(2)}</Text></Text>}
+                        {item.type === 'Plat' && <Text style={styles.boldGreyText}>Spécifications: <Text style={styles.normalText}>{specificationsText}</Text></Text>}
+                        <Text style={styles.boldGreyText}>Date/Heure: <Text style={styles.normalText}>{deliveryDateString} à {deliveryTime}</Text></Text>
+                    </View>
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity onPress={() => handleModify(item)} style={styles.modifyButton}>
+                            <Text style={{ color: 'white', padding: 5, fontFamily: 'Ebrima' }}>Mod</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
+                            <Text style={{ color: 'white', padding: 5, fontFamily: 'Ebrima' }}>Supp.</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity onPress={() => handleModify(item)} style={styles.modifyButton}>
-                        <Text style={{color: 'white', padding: 5, fontFamily: 'Ebrima',}}>Mod</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
-                        <Text style={{color: 'white', padding: 5, fontFamily: 'Ebrima',}}>Supp.</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+            </TouchableOpacity>
         );
     };
 

@@ -38,6 +38,7 @@ import AddDishScreen from '../Screens/AddDishScreen';
 import AddMemberScreen from '../Screens/AddMemberScreen';
 import StoreScreen from '../Screens/StoreScreen';
 import StoreDetailScreen from '../Screens/StoreDetailScreen';
+import MealTab from '../Screens/MealTab';
 
 // Define a root stack navigator
 const RootStack = createStackNavigator();
@@ -85,6 +86,7 @@ const RootNavigator = () => {
       <RootStack.Screen name="AddMemberScreen" component={AddMemberScreen} options={{ headerShown: false }}/>
       <RootStack.Screen name="StoreScreen" component={StoreScreen} options={{ headerShown: false }}/>
       <RootStack.Screen name="StoreDetailScreen" component={StoreDetailScreen} options={{ headerShown: false }}/>
+      <RootStack.Screen name="MealTab" component={MealTab} options={{ headerShown: false }}/>
     </RootStack.Navigator>
   );
 };

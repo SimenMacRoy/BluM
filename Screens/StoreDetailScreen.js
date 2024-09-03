@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import React, { useEffect, useState,} from 'react';
+import { View, Text, ScrollView, Image, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Header from './Header';
 import SearchBar from './SearchBar';
+import IngredientsScreen from './IngredientsScreen';
 import SearchResults from './SearchResults';
 import config from '../config';
+import Header from './Header';
+import { useNavigate } from 'react-router';
 
 const StoreDetailScreen = ({ route }) => {
     const { supplierID } = route.params;
     const [supplier, setSupplier] = useState(null);
-    const [ingredients, setIngredients] = useState([]);
-    const [searchResults, setSearchResults] = useState([]);
+    const [filteredIngredients, setFilteredIngredients] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const navigation = useNavigation();
 
@@ -21,7 +22,7 @@ const StoreDetailScreen = ({ route }) => {
                 const data = await response.json();
                 if (data.success) {
                     setSupplier(data.supplier);
-                    setIngredients(data.ingredients);
+                    setFilteredIngredients(data.ingredients);  // Initialize with all ingredients
                 } else {
                     Alert.alert('Error', 'Failed to fetch supplier details.');
                 }
@@ -35,8 +36,13 @@ const StoreDetailScreen = ({ route }) => {
     }, [supplierID]);
 
     const handleSearch = (results) => {
-        setSearchResults(results);
-        setIsSearching(results.length > 0);
+        if (results.length > 0) {
+            setIsSearching(true);
+            setFilteredIngredients(results);
+        } else {
+            setIsSearching(false);
+            setFilteredIngredients(supplier.ingredients);  // Reset to all ingredients if no results
+        }
     };
 
     if (!supplier) {
@@ -53,35 +59,30 @@ const StoreDetailScreen = ({ route }) => {
                         style={styles.logoImage}
                     />
                 )}
-                <Text style={styles.supplierName}>{supplier.name}</Text>
+                <View style={styles.supplierDetails}>
+                    <Text style={styles.supplierName}>{supplier.name}</Text>
+                    <Text style={styles.supplierInfoText}>Ouvert, ferme à {supplier.closingTime}</Text>
+                    <Text style={styles.supplierInfoText}>Address: {supplier.postalAddress}</Text>
+                </View>
             </View>
             <SearchBar
                 onSearch={handleSearch}
                 placeholder={`Rechercher dans ${supplier.name}`}
-                searchType={`supplier_ingredients_${supplierID}`}  // Assuming search type is specific to supplier's ingredients
+                searchType={`supplier_ingredients_${supplierID}`}
+                supplierID={supplierID}
             />
             {isSearching ? (
                 <SearchResults
-                    results={searchResults}
+                    results={filteredIngredients}
                     onResultPress={(ingredient) => navigation.navigate('IngredientsDetailScreen', { ingredientId: ingredient.id })}
                 />
             ) : (
-                ingredients.map((ingredient) => (
-                    <TouchableOpacity
-                        key={ingredient.id}
-                        style={styles.ingredientContainer}
-                        onPress={() => navigation.navigate('IngredientsDetailScreen', { ingredientId: ingredient.id })}
-                    >
-                        {ingredient.image && (
-                            <Image
-                                source={{ uri: ingredient.image }}
-                                style={styles.ingredientImage}
-                            />
-                        )}
-                        <Text style={styles.ingredientTitle}>{ingredient.title}</Text>
-                        <Text style={styles.ingredientPrice}>Prix: ${ingredient.unitPrice}</Text>
-                    </TouchableOpacity>
-                ))
+                <IngredientsScreen 
+                    supplierID={supplierID} 
+                    hideHeader={true} 
+                    hideSearchBar={true} 
+                    customIngredients={filteredIngredients} 
+                />
             )}
         </ScrollView>
     );
@@ -92,37 +93,28 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 20,
+        backgroundColor: '#f5f5f5',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
     },
     logoImage: {
         width: 100,
         height: 100,
-        borderRadius: 50,  // Make the logo round
+        borderRadius: 50,
         marginRight: 15,
+    },
+    supplierDetails: {
+        flex: 1,
     },
     supplierName: {
         fontSize: 24,
         fontFamily: 'Ebrimabd',
     },
-    ingredientContainer: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderColor: '#ddd',
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    ingredientImage: {
-        width: 100,
-        height: 100,
-        marginRight: 15,
-    },
-    ingredientTitle: {
-        fontSize: 20,
-        fontFamily: 'Ebrima',
-    },
-    ingredientPrice: {
+    supplierInfoText: {
         fontSize: 16,
-        color: '#888',
         fontFamily: 'Ebrima',
+        color: '#666',
+        marginTop: 5,
     },
 });
 

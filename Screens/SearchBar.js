@@ -17,7 +17,7 @@ const SearchBar = ({ searchText, onSearch, onResultPress, placeholder = "Que vou
             apiEndpoint = `${config.apiBaseUrl}/search/foods?query=${query}`;
         } else if (searchType === 'ingredients') {
             apiEndpoint = `${config.apiBaseUrl}/search/ingredients?query=${query}`;
-        } else if (searchType === `supplier_ingredients_${supplierID}`) {
+        } else if (searchType === `supplier_ingredients_${supplierID}` && supplierID) {  // Ensure supplierID is defined
             apiEndpoint = `${config.apiBaseUrl}/search/supplier_ingredients/${supplierID}?query=${query}`;
         } else {
             apiEndpoint = `${config.apiBaseUrl}/search/${searchType}?query=${query}`;
